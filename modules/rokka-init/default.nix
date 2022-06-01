@@ -1,38 +1,60 @@
 { config, lib }:
 let
   inherit (builtins) map toString;
-  inherit (lib) concatStringsSep;
+  inherit (lib) concatStringsSep filter;
   inherit (lib.lists) flatten;
   inherit (lib.attrsets) mapAttrsToList;
 
+  isNonNull = x: !(isNull x);
   concatC = concatStringsSep ",";
   concatN = concatStringsSep "\n";
-  setToTable = s:
+  simpleSetToTable = s:
     "{ ${concatC (mapAttrsToList (k: v: k + "='" + (toString v) + "'") s)}}";
 
-  makeInitConfig = p:
-    let configs = flatten [ p.init (if !p.opt then p.onLoad else [ ]) ];
-    in concatN configs;
+  makeStartupConfig = p:
+    if isNonNull p.startup then ''
+      -- ${p.pname}
+      ${p.startup}
+    '' else
+      null;
 
-  # WIP
-  makeOnLoad = p: "";
+  makeConfig = p:
+    let
+      simpleConfig = p: ''
+        -- ${p.pname}
+        ${p.config}
+      '';
+      smartConfig = p: ''
+        -- WIP
+      '';
+    in if isNull p.config then
+      null
+    else if !p.opt then
+      simpleConfig p
+    else
+      smartConfig p;
 
   makeRokkaInit = { config, plugins }:
     let
-      initConfigs = concatN (map makeInitConfig plugins);
-      onLoadConfigs = concatN (map makeOnLoad plugins);
+      startupConfigs =
+        concatN (filter isNonNull (map makeStartupConfig plugins));
+      configs = concatN (filter isNonNull (map makeConfig plugins));
     in ''
       vim.cmd [[packadd rokka.nvim]]
 
       local rokka = require 'rokka'
 
-      rokka.init(${setToTable config})
+      rokka.init(${simpleSetToTable config})
 
-      -- Init configs --
+      ---------------------
+      -- Startup configs --
+      ---------------------
       ${initConfigs}
 
-      -- OnLoad configs --
-      ${onLoadConfigs}
+      -------------
+      -- Configs --
+      -------------
+      ${configs}
     '';
 
 in { inherit makeRokkaInit; }
