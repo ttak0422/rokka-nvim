@@ -1,4 +1,4 @@
-{ config, lib }:
+{ config, lib, rokka-util }:
 let
   inherit (builtins) map toString;
   inherit (lib) concatStringsSep filter;
@@ -13,26 +13,18 @@ let
 
   makeStartupConfig = p:
     if isNonNull p.startup then ''
-      -- ${p.pname}
+      -- ${p.plugin.pname}
       ${p.startup}
     '' else
       null;
 
+  # WIP
   makeConfig = p:
-    let
-      simpleConfig = p: ''
-        -- ${p.pname}
-        ${p.config}
-      '';
-      smartConfig = p: ''
-        -- WIP
-      '';
-    in if isNull p.config then
-      null
-    else if !p.opt then
-      simpleConfig p
-    else
-      smartConfig p;
+    if isNonNull p.config then ''
+      -- ${p.plugin.pname}
+      ${p.config}
+    '' else
+      null;
 
   makeRokkaInit = { config, plugins }:
     let
@@ -49,7 +41,7 @@ let
       ---------------------
       -- Startup configs --
       ---------------------
-      ${initConfigs}
+      ${startupConfigs}
 
       -------------
       -- Configs --

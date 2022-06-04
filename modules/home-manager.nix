@@ -1,65 +1,102 @@
-{ self, ... }@inputs:
+{ self, nix-filter, ... }@inputs:
 
 { config, pkgs, lib, ... }:
 
 with lib;
 
 let
+  rokka-util = import ./rokka-util.nix { };
+
   inherit (pkgs) callPackage;
+  inherit (rokka-util) rokkaNvimPluginDefault;
 
   cfg = config.programs.rokka-nvim;
 
   rokkaNvimPluginType = types.submodule {
-    plugin = mkOption {
-      type = types.package;
-      description = "vim plugin";
-    };
-    enable = mkEnableOption "plugin" // { default = true; };
-    opt = mkEnableOption "opt" // {
-      description = ''
-        opt = false; # automatic loading.
-        opt = true;  # manual loading.
-      '';
-    };
-    startup = mkOption {
-      type = with types; nullOr str;
-      description = "It is executed at startup of rokka.nvim.";
-      default = null;
-    };
-    config = mkOption {
-      type = with types; nullOr str;
-      description = "It is executed after 'plugin' is loaded.";
-      default = null;
-    };
-    rtp = mkOption {
-      type = with types; nullOr str;
-      description = "Subdirectory of 'plugin'.";
-      default = null;
-    };
-    as = mkOption {
-      type = with types; nullOr str;
-      description = "Alias of 'plugin'.";
-      default = null;
-    };
-    extraPackages = mkOption {
-      type = with types; listOf package;
-      description = "Nix packages.";
-      default = [ ];
-      example = literalExpression ''
-        [ pkgs.glow ]
-      '';
+    options = {
+
+      rokka = mkOption {
+        type = types.anything;
+        description =
+          "Used to compare between rokkaPlugin and plain vim packages.";
+        default = rokkaNvimPluginDefault.rokka;
+        visible = false;
+      };
+
+      plugin = mkOption {
+        type = types.package;
+        description = "vim plugin.";
+      };
+
+      enable = mkEnableOption "plugin" // {
+        default = rokkaNvimPluginDefault.enable;
+      };
+
+      optional = mkEnableOption "optional" // {
+        description = ''
+          optional = false; # automatic loading.
+          optional = true;  # manual loading.
+        '';
+        default = rokkaNvimPluginDefault.optional;
+      };
+
+      startup = mkOption {
+        type = with types; nullOr str;
+        description = "It is executed at startup of rokka.nvim.";
+        default = rokkaNvimPluginDefault.startup;
+      };
+
+      config = mkOption {
+        type = with types; nullOr str;
+        description = "It is executed after 'plugin' is loaded.";
+        default = rokkaNvimPluginDefault.config;
+      };
+
+      depends = mkOption {
+        type = with types; listOf package;
+        description = "dependencies.";
+        default = rokkaNvimPluginDefault.depends;
+      };
+
+      rtp = mkOption {
+        type = with types; nullOr str;
+        description = "Subdirectory of 'plugin'.";
+        default = rokkaNvimPluginDefault.rtp;
+      };
+
+      as = mkOption {
+        type = with types; nullOr str;
+        description = "Alias of 'plugin'.";
+        default = rokkaNvimPluginDefault.as;
+      };
+
+      optimize = mkEnableOption "optimize" // {
+        description = "optimize plugin.";
+        default = rokkaNvimPluginDefault.optimize;
+      };
+
+      extraPackages = mkOption {
+        type = with types; listOf package;
+        description = "Nix packages.";
+        default = rokkaNvimPluginDefault.extraPackages;
+        example = literalExpression ''
+          [ pkgs.glow ]
+        '';
+      };
+
     };
   };
 
-  rokka-nvim = {
+  rokkaNvim = rokka-util.rokkaNvimPluginDefault // {
     plugin = callPackage ./rokka { };
-    opt = true;
   };
-  plugins = [ rokka-nvim ]
-    ++ (map (p: defaultRokkaPluginConfig // p) (cfg.plugins or [ ]));
+  plugins = [ rokkaNvim ] ++ cfg.plugins;
   packages = flatten (map (p: p.packages) plugins);
-  rokka-pack = callPackage ./rokka-pack { inherit plugins; };
-  rokka-init = callPackage ./rokka-init { };
+  rokka-pack = callPackage ./rokka-pack {
+    inherit rokka-util plugins;
+    nix-filter = nix-filter.lib;
+  };
+  rokka-init = callPackage ./rokka-init { inherit rokka-util; };
 in {
   options = {
     programs.rokka-nvim = {
@@ -74,11 +111,11 @@ in {
       };
       plugins = mkOption {
         # TODO: support package.
-        types = with types; oneOf [ rokkaNvimPluginType ];
+        type = with types; listOf rokkaNvimPluginType;
         description = "Vim plugins.";
         default = [ ];
         example = literalExpression ''
-          # WIP
+          [ pkgs.vimPlugins.nerdtree ]
         '';
       };
       logLevel = mkOption {
