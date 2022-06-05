@@ -27,7 +27,6 @@ let
        => false
   */
   elemWith = f: x: xs: elem (f x) (map f xs);
-  # elem   
 
   # inherit default config.
   normalize = p:
@@ -46,18 +45,18 @@ let
           else
             [ p ] ++ (f (map (p': p' // { optional = p.optional; })
               (map normalize p.depends)))) ps;
-      # in uniqueWith (p: { name = p.plugin.pname; optional = p.optional; }) 
-    in (flatten (f plugins'));
+    in uniqueWith (p: {
+      name = p.plugin.pname;
+      optional = p.optional;
+    }) (flatten (f plugins'));
 
   allPlugins = let
-    # all = resolveDepends plugins;
-    all = plugins;
+    all = resolveDepends plugins;
     allStart = filter (p: !p.optional) all;
-    allOpt = filter (p: p.optional) all;
-    # allOpt' = filter (p: !(elemWith))
-    # allOpt = filter (p: p.optional && !(elemWith (p': p'.plugin.pname) p allStart)) all;
-    # in allStart ++ allOpt;
-  in all;
+    allOpt =
+      filter (p: p.optional && !(elemWith (p': p'.plugin.pname) p allStart))
+      all;
+  in allStart ++ allOpt;
 
   optimizePlugin = p:
     p.overrideAttrs (old: {
@@ -96,6 +95,5 @@ in mkDerivation {
   installPhase = concatStringsSep "\n" ([
     "mkdir -p $out/pack/${packpath}/start"
     "mkdir -p $out/pack/${packpath}/opt"
-    # ] ++ (locatePlugins allPlugins));
-  ]);
+  ] ++ (locatePlugins allPlugins));
 }
