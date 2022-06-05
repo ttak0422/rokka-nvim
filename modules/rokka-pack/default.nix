@@ -1,4 +1,4 @@
-{ lib, stdenv, nix-filter, rokka-util, plugins }:
+{ lib, stdenv, nix-filter, rokkaPluginBaseConfig, plugins }:
 let
   inherit (builtins) map elem;
   inherit (lib) flatten filter;
@@ -30,10 +30,7 @@ let
 
   # inherit default config.
   normalize = p:
-    if p ? rokka then
-      p
-    else
-      rokka-util.rokkaNvimPluginDefault // { plugin = p; };
+    if p ? rokka then p else rokkaPluginBaseConfig // { plugin = p; };
 
   resolveDepends = plugins:
     let
@@ -43,8 +40,11 @@ let
           if p.depends == [ ] then
             [ p ]
           else
-            [ p ] ++ (f (map (p': p' // { optional = p.optional; })
-              (map normalize p.depends)))) ps;
+            [ p ] ++ (f (map (p':
+              p' // {
+                optional = p.optional;
+                delay = p.delay;
+              }) (map normalize p.depends)))) ps;
     in uniqueWith (p: {
       name = p.plugin.pname;
       optional = p.optional;

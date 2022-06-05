@@ -1,5 +1,5 @@
 { ... }: {
-  rokkaNvimPluginDefault = {
+  rokkaPluginDefault = {
     rokka = true;
     plugin = null;
     enable = true;
@@ -10,6 +10,7 @@
     rtp = null;
     as = null;
     optimize = true;
+    delay = false;
     extraPackages = [ ];
   };
 }
