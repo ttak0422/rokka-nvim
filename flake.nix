@@ -9,7 +9,8 @@
 
   outputs = { self, nixpkgs, flake-utils, nix-filter, ... }@inputs:
     {
-      hmModule = import ./modules/home-manager.nix inputs;
+      hmModule = import ./modules/home-manager.nix
+        (inputs // { nix-filter = nix-filter.lib; });
     } // flake-utils.lib.eachDefaultSystem (system:
       let pkgs = nixpkgs.legacyPackages.${system};
       in {
