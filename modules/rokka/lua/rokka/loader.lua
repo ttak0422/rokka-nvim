@@ -61,6 +61,7 @@ end
 function setup_cmd_loader(self)
   self.logger.debug("[Setup] cmd loader.")
   for cmd, plugins in pairs(self.cmd_plugins) do 
+    self.logger.debug("[Setup] cmd.", cmd)
     vim.api.nvim_create_autocmd({ "CmdUndefined" }, {
       group = self.group_name,
       pattern = cmd,
@@ -77,6 +78,7 @@ end
 function setup_ft_loader(self)
   self.logger.debug("[Setup] ft loader.")
   for ft, plugins in pairs(self.ft_plugins) do 
+    self.logger.debug("[Setup] ft.", ft)
     vim.api.nvim_create_autocmd({ "FileType" }, {
       group = self.group_name,
       pattern = ft,

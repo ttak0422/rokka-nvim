@@ -28,7 +28,6 @@ let
     commands = [ ];
     delay = false;
     optimize = true;
-    extraPackages = [ ];
   };
 
   pluginUserConfigType = types.submodule {
@@ -113,12 +112,6 @@ let
         description = "optimize.";
         default = pluginConfigDefault.optimize;
       };
-
-      extraPackages = mkOption {
-        type = with types; listOf package;
-        description = "extraPackages.";
-        default = pluginConfigDefault.extraPackages;
-      };
     };
   };
 
@@ -176,6 +169,7 @@ let
     in f plugin';
 
   rokkaNvim = pluginConfigDefault // { plugin = callPackage ./rokka { }; };
+
   plugins = let
     ps1 = filter (p: p.enable) cfg.plugins;
     ps2 = map normalizePlugin ps1;
@@ -207,8 +201,6 @@ let
     f = expandWith (x: x.fileTypes) (src: ft: src // { fileType = ft; });
   in flatten (map f plugins');
 
-  extraPackages = flatten (map (p: p.extraPackages) plugins);
-
   rokka-pack = callPackage ./rokka-pack { inherit allPlugins; };
   rokka-init = callPackage ./rokka-init {
     inherit plugins optPlugins allPlugins allStartPlugins allOptPlugins
@@ -218,15 +210,6 @@ in {
   options = {
     programs.rokka-nvim = {
       enable = mkEnableOption "rokka-nvim";
-
-      extraPackages = mkOption {
-        type = with types; listOf package;
-        description = "Extra packages.";
-        default = [ ];
-        example = literalExpression ''
-          [ pkgs.neovim-remote ]
-        '';
-      };
 
       plugins = mkOption {
         # TODO: support package.
