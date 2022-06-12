@@ -122,25 +122,6 @@ let
     };
   };
 
-  optimizePackage = package:
-    package.overrideAttrs (old: {
-      src = nix-filter {
-        root = package.src;
-        exclude = [
-          "LICENSE"
-          "README"
-          "README.md"
-          "t"
-          "test"
-          "tests"
-          "Makefile"
-          ".gitignore"
-          ".git"
-          ".github"
-        ];
-      };
-    });
-
   normalizePlugin = p:
     if p ? rokka then
       p // { name = if p.as != null then p.as else p.plugin.pname; }
@@ -180,10 +161,7 @@ let
   plugins = let
     ps1 = filter (p: p.enable) cfg.plugins;
     ps2 = map normalizePlugin ps1;
-    ps3 = map (p:
-      if !p.optional then p else p // { plugin = optimizePackage p.plugin; })
-      ps2;
-  in [ rokkaNvim ] ++ ps3;
+  in [ rokkaNvim ] ++ ps2;
   allPlugins = flattenPlugins plugins;
   allStartPlugins = filter (p: !p.optional) allPlugins;
   allOptPlugins =
@@ -208,7 +186,7 @@ let
     f = expandWith (x: x.fileTypes) (src: ft: src // { fileType = ft; });
   in flatten (map f plugins');
 
-  rokka-pack = callPackage ./rokka-pack { inherit allPlugins; };
+  rokka-pack = callPackage ./rokka-pack { inherit nix-filter allPlugins; };
   rokka-init = callPackage ./rokka-init {
     inherit plugins optPlugins allPlugins allStartPlugins allOptPlugins
       eventPlugins commandPlugins fileTypePlugins;
@@ -257,6 +235,8 @@ in {
       "nvim/init.vim".text = mkAfter ''
         " rokka-nvim
         set packpath^=${rokka-pack}
+        set runtimepath^=${rokka-pack}
+        runtime! ftdetect/*.vim
         lua require 'init-rokka'
       '';
       "nvim/lua/init-rokka.lua".text = rokka-init.makeRokkaInit {
