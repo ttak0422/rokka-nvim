@@ -68,9 +68,8 @@ let
       };
 
       depends = mkOption {
-        # TODO: support other type.
-        # TODO: support after option.
-        type = with types; listOf package;
+        type = with types; listOf (either package pluginUserConfigType);
+        description = "depends.";
         default = pluginConfigDefault.depends;
       };
 

@@ -23,7 +23,7 @@
 | optional | bool | true | true -> `opt`, false -> `start`. |
 | startup | nullOr str | null | - |
 | config | nullOr str | null | - |
-| depends | :construction: listOf package | [] | - |
+| depends | listOf (`pluginUserConfigType` \| package) | [] | - |
 | rtp | nullOr str | null | subdirectory. |
 | as | nullOr str | null | use different name for plugin. |
 | events | listOf str | [] | - |
@@ -57,6 +57,11 @@ programs.rokka-nvim = {
       plugin = pkgs.vimPlugins.telescope-nvim;
       depends = with pkgs.vimPlugins; [ plenary-nvim ];
       commands = [ "Telescope" ];
+    }
+    {
+      plugin = pkgs.vimPlugins.diffview-nvim;
+      depends = [ { plugin = pkgs.vimPlugins.plenary-nvim; } ];
+      commands = [ "DiffviewOpen" ];
     }
     {
       plugin = pkgs.vimPlugins.hop-nvim;
