@@ -187,7 +187,7 @@ let
   allPlugins = flattenPlugins plugins;
   allStartPlugins = filter (p: !p.optional) allPlugins;
   allOptPlugins =
-    filter (p: p.optional && !(elemWith (p' p'.name) p allStartPlugins))
+    filter (p: p.optional && !(elemWith (p': p'.name) p allStartPlugins))
     allPlugins;
   allEventPlugins = filter (p: p.events != [ ]) allOptPlugins;
   allCmdPlugins = filter (p: p.commands != [ ]) allOptPlugins;
