@@ -32,3 +32,42 @@
 | delay | bool | false | [] | - |
 | optimize | bool | true | optimize flag. |
 | extraPackages | listOf package | [] | nix package. |
+
+## Example.
+
+```nix
+programs.rokka-nvim = {
+  enable = true;
+  logLevel = "debug";
+  plugins = [
+    {
+      plugin = pkgs.vimPlugins.vim-sensible;
+      optional = false;
+    }
+    {
+      plugin = pkgs.vimPlugins.ayu-vim;
+      startup = ''
+        vim.cmd([[set termguicolors]])
+        vim.cmd([[let ayucolor="light"]])
+        vim.cmd([[colorscheme ayu]])
+      '';
+    }
+    {
+      plugin = pkgs.vimPlugins.telescope-nvim;
+      depends = with pkgs.vimPlugins; [ plenary-nvim ];
+      commands = [ "Telescope" ];
+    }
+    {
+      plugin = pkgs.vimPlugins.hop-nvim;
+      events = [ "InsertEnter" ];
+      config = ''
+        require'hop'.setup { keys = 'etovxqpdygfblzhckisuran' }
+      '';
+    }
+    {
+      plugin = pkgs.vimPlugins.neoscroll-nvim;
+      delay = true;
+    }
+  ];
+};
+```
