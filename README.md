@@ -72,6 +72,11 @@ programs.rokka-nvim = {
       plugin = pkgs.vimPlugins.vim-nix;
       fileTypes = [ "nix" ];
     }
+    {
+      plugin = pkgs.vimPlugins.glow-nvim;
+      commands = [ "Glow" ];
+      extraPackages = [ pkgs.glow ];
+    };
   ];
 };
 ```
