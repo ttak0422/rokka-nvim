@@ -29,7 +29,7 @@
 | events | listOf str | [] | - |
 | commands | listOf str | [] | - |
 | fileTypes | listOf str | [] | - |
-| delay | bool | false | [] | - |
+| delay | bool | false | delay flag. |
 | optimize | bool | true | optimize flag. |
 | extraPackages | listOf package | [] | nix package. |
 
@@ -67,6 +67,10 @@ programs.rokka-nvim = {
     {
       plugin = pkgs.vimPlugins.neoscroll-nvim;
       delay = true;
+    }
+    {
+      plugin = pkgs.vimPlugins.vim-nix;
+      fileTypes = [ "nix" ];
     }
   ];
 };
