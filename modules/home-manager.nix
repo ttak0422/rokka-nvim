@@ -28,6 +28,7 @@ let
     commands = [ ];
     delay = false;
     optimize = true;
+    extraPackages = [ ];
   };
 
   pluginUserConfigType = types.submodule {
@@ -111,6 +112,12 @@ let
       optimize = mkEnableOption "optimize" // {
         description = "optimize.";
         default = pluginConfigDefault.optimize;
+      };
+
+      extraPackages = mkOption {
+        type = with types; listOf package;
+        description = "extraPackages.";
+        default = pluginConfigDefault.extraPackages;
       };
     };
   };
@@ -206,6 +213,9 @@ let
     inherit plugins optPlugins allPlugins allStartPlugins allOptPlugins
       eventPlugins commandPlugins fileTypePlugins;
   };
+
+  extraPackages = cfg.extraPackages
+    ++ (flatten (map (p: p.extraPackages) allPlugins));
 in {
   options = {
     programs.rokka-nvim = {
@@ -232,10 +242,17 @@ in {
         description = "The log level of rokka.nvim.";
         default = "warn";
       };
+
+      extraPackages = mkOption {
+        type = with types; listOf package;
+        description = "extraPackages.";
+        default = [ ];
+      };
     };
   };
 
   config = mkIf cfg.enable {
+    programs.neovim.extraPackages = extraPackages;
     xdg.configFile = {
       "nvim/init.vim".text = mkAfter ''
         " rokka-nvim
