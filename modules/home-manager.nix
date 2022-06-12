@@ -159,8 +159,8 @@ let
   rokkaNvim = pluginConfigDefault // { plugin = callPackage ./rokka { }; };
 
   plugins = let
-    ps1 = filter (p: p.enable) cfg.plugins;
-    ps2 = map normalizePlugin ps1;
+    ps1 = map normalizePlugin cfg.plugins;
+    ps2 = filter (p: p.enable) ps1;
   in [ rokkaNvim ] ++ ps2;
   allPlugins = flattenPlugins plugins;
   allStartPlugins = filter (p: !p.optional) allPlugins;
@@ -200,8 +200,7 @@ in {
       enable = mkEnableOption "rokka-nvim";
 
       plugins = mkOption {
-        # TODO: support package.
-        type = with types; listOf pluginUserConfigType;
+        type = with types; listOf (either package pluginUserConfigType);
         description = "Vim plugins.";
         default = [ ];
         example = literalExpression ''

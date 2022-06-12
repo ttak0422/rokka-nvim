@@ -9,7 +9,7 @@
 | name | type | default | description |
 |:-:|:-:|:-:|:-:|
 | enable | bool | true | enable `rokka-nvim`. |
-| plugins | listOf `pluginUserConfigType` | [] | vim plugins. |
+| plugins | listOf (`pluginUserConfigType` \| package) | [] | vim plugins. |
 | extraPackages | listOf package | [] | nix package. |
 | delayTime | int (milliseconds) | 100 | use for delay loader. |
 | logLevel | enum | "warn" | log level ("trace" \| "debug" \| "info" \| "warn" \| "error" \| "fatal"). |
@@ -40,6 +40,7 @@ programs.rokka-nvim = {
   enable = true;
   logLevel = "debug";
   plugins = [
+    pkgs.vimPlugins.ale
     {
       plugin = pkgs.vimPlugins.vim-sensible;
       optional = false;
