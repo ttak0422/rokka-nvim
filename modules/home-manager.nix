@@ -123,11 +123,11 @@ let
 
   normalizePlugin = p:
     if p ? rokka then
-      p // { name = if p.as != null then p.as else p.plugin.pname; }
+      p // { pname = if p.as != null then p.as else p.plugin.pname; }
     else
       pluginConfigDefault // {
         plugin = p;
-        name = p.pname;
+        pname = p.pname;
       };
 
   flattenPlugins = plugins:
@@ -142,7 +142,7 @@ let
               depends' = map normalizePlugin p.depends;
               p' = p // { depends = depends'; };
             in [ p' ] ++ depends') ps;
-    in uniqueWith (p: p.name) (flatten (f plugins'));
+    in uniqueWith (p: p.pname) (flatten (f plugins'));
 
   optimizeDepends = plugin:
     let
@@ -164,7 +164,7 @@ let
   allPlugins = flattenPlugins plugins;
   allStartPlugins = filter (p: !p.optional) allPlugins;
   allOptPlugins =
-    filter (p: p.optional && !(elemWith (p': p'.name) p allStartPlugins))
+    filter (p: p.optional && !(elemWith (p': p'.pname) p allStartPlugins))
     allPlugins;
   allEventPlugins = filter (p: p.events != [ ]) allOptPlugins;
   allCmdPlugins = filter (p: p.commands != [ ]) allOptPlugins;

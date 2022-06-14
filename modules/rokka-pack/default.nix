@@ -31,7 +31,7 @@ let
   locateOptimizedPlugin = p:
     let
       dir = if p.optional then "opt" else "start";
-      name = p.name;
+      name = p.pname;
       rtp = if isNull p.rtp then "" else p.rtp;
       origin = p.plugin;
       optimized = optimizePackage origin;
@@ -51,7 +51,7 @@ let
   locateNormalPlugin = p:
     let
       dir = if p.optional then "opt" else "start";
-      name = p.name;
+      name = p.pname;
       rtp = if isNull p.rtp then "" else p.rtp;
       plugin = p.plugin;
     in "ln -sf ${plugin}/${rtp} $out/pack/${packpath}/${dir}/${name}";

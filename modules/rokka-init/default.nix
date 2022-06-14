@@ -36,10 +36,11 @@ let
       startupConfigs = let plugin' = filter (p: p.startup != null) allPlugins;
       in concatN (map makeStartupConfig plugin');
       evPlugins = let
-        ps = groupBy' (acc: x: acc ++ [ x.name ]) [ ] (x: x.event) eventPlugins;
+        ps =
+          groupBy' (acc: x: acc ++ [ x.pname ]) [ ] (x: x.event) eventPlugins;
       in mapAttrs (name: value: simpleListToTable (p: "'${p}'") value) ps;
       cmdPlugins = let
-        ps = groupBy' (acc: x: acc ++ [ x.name ]) [ ] (x: x.command)
+        ps = groupBy' (acc: x: acc ++ [ x.pname ]) [ ] (x: x.command)
           commandPlugins;
       in mapAttrs (name: value: simpleListToTable (p: "'${p}'") value) ps;
       ftPlugins = let
