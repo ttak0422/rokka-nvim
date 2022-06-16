@@ -42,6 +42,24 @@ programs.rokka-nvim = {
   plugins = [
     pkgs.vimPlugins.ale
     {
+      plugin = pkgs.vimPlugins.nvim-cmp;
+      depends = [ pkgs.vimPlugins.cmp-path ];
+      startup = "";
+      config = ''
+        -- WIP: rokka-nvim does support `after`. You need to call `after` explicitly.
+        vim.cmd[[silent source ${pkgs.vimPlugins.cmp-path}/after/plugin/cmp_path.lua]]
+
+        vim.opt.completeopt = "menu,menuone,noselect"
+        local cmp = require'cmp'
+        cmp.setup {
+          sources = {
+            { name = 'path' }
+          }
+        }
+      '';
+      events = [ "InsertEnter" ];
+    }
+    {
       plugin = pkgs.vimPlugins.vim-sensible;
       optional = false;
     }
@@ -82,7 +100,7 @@ programs.rokka-nvim = {
       plugin = pkgs.vimPlugins.glow-nvim;
       commands = [ "Glow" ];
       extraPackages = [ pkgs.glow ];
-    };
+    }
   ];
 };
 ```
