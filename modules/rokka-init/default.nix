@@ -17,17 +17,17 @@ let
   simpleListToTable = f: xs: "{${concatC (map f xs)}}";
 
   mkOptPluginConfig = p: ''
-    ["${p.plugin.pname}"] = {
+    ["${p.pname}"] = {
       loaded = false,
       config = ${
         if isNonNull p.config then "function() ${p.config} end" else "nil"
       },
-      opt_depends = ${simpleListToTable (p': "'${p'.plugin.pname}'") p.depends},
+      opt_depends = ${simpleListToTable (p': "'${p'.pname}'") p.depends},
     }
   '';
 
   makeStartupConfig = p: ''
-    -- ${p.plugin.pname}
+    -- ${p.pname}
     ${p.startup}
   '';
 
@@ -44,7 +44,7 @@ let
           commandPlugins;
       in mapAttrs (name: value: simpleListToTable (p: "'${p}'") value) ps;
       ftPlugins = let
-        ps = groupBy' (acc: x: acc ++ [ x.plugin.pname ]) [ ] (x: x.fileType)
+        ps = groupBy' (acc: x: acc ++ [ x.pname ]) [ ] (x: x.fileType)
           fileTypePlugins;
       in mapAttrs (name: value: simpleListToTable (p: "'${p}'") value) ps;
       delayPlugins = filter (p: p.delay) optPlugins;
@@ -86,7 +86,7 @@ let
           }
         },
         loader_delay_plugins = ${
-          simpleListToTable (p: "'${p.plugin.pname}'") delayPlugins
+          simpleListToTable (p: "'${p.pname}'") delayPlugins
         },
         loader_delay_time = ${toString config.loader_delay_time},
       }
