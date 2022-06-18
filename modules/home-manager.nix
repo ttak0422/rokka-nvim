@@ -234,7 +234,8 @@ in {
         " rokka-nvim
         set packpath^=${rokka-pack}
         set runtimepath^=${rokka-pack}
-        runtime! ftdetect/*.vim
+        runtime! ftdetect/**/*.vim
+        runtime! ftdetect/**/*.lua
         lua require 'init-rokka'
       '';
       "nvim/lua/init-rokka.lua".text = rokka-init.makeRokkaInit {

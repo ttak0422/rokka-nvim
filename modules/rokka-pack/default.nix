@@ -37,11 +37,13 @@ let
       optimized = optimizePackage origin;
     in ''
       if [ -e ${origin}/${rtp}/ftdetect ] && [ -n "$(ls ${origin}/${rtp}/ftdetect)" ]; then
-        cp -r ${origin}/${rtp}/ftdetect/* $out/ftdetect
+        mkdir -p $out/ftdetect/${name}
+        ln -sf ${origin}/${rtp}/ftdetect/* $out/ftdetect/${name}
       fi
 
       if [ -e ${origin}/${rtp}/ftplugin ] && [ -n "$(ls ${origin}/${rtp}/ftplugin)" ]; then
-        cp -r ${origin}/${rtp}/ftplugin/* $out/ftplugin
+        mkdir -p $out/ftplugin/${name}
+        ln -sf ${origin}/${rtp}/ftplugin/* $out/ftplugin/${name}
       fi
 
       ln -sf ${optimized}/${rtp} $out/pack/${packpath}/${dir}/${name}
@@ -64,8 +66,6 @@ in mkDerivation {
   src = ./.;
   preferLocalBuild = true;
   installPhase = concatStringsSep "\n" ([
-    "mkdir -p $out/ftdetect"
-    "mkdir -p $out/ftplugin"
     "mkdir -p $out/pack/${packpath}/start"
     "mkdir -p $out/pack/${packpath}/opt"
   ] ++ (locatePlugins allPlugins));
