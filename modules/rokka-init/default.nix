@@ -26,6 +26,11 @@ let
     }
   '';
 
+  mkStartPluginConfig = p: ''
+    -- ${p.pname}
+    ${p.config}
+  '';
+
   makeStartupConfig = p: ''
     -- ${p.pname}
     ${p.startup}
@@ -35,6 +40,9 @@ let
     let
       startupConfigs = let plugin' = filter (p: p.startup != null) allPlugins;
       in concatN (map makeStartupConfig plugin');
+      startPluginConfigs =
+        let plugin' = filter (p: p.config != null) allStartPlugins;
+        in concatN (map mkStartPluginConfig plugin');
       evPlugins = let
         ps =
           groupBy' (acc: x: acc ++ [ x.pname ]) [ ] (x: x.event) eventPlugins;
@@ -97,6 +105,11 @@ let
       -- Startup configs --
       ---------------------
       ${startupConfigs}
+
+      ---------------------
+      -- Start plugin configs --
+      ---------------------
+      ${startPluginConfigs}
     '';
 
 in { inherit makeRokkaInit; }
