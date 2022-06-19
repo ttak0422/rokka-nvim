@@ -27,7 +27,7 @@ let
       };
     });
 
-  # start/opt/ftdetect/ftplugin directories must be created before this.
+  # start/opt directories must be created before this.
   locateOptimizedPlugin = p:
     let
       dir = if p.optional then "opt" else "start";
