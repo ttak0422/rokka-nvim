@@ -26,6 +26,9 @@ let
     events = [ ];
     fileTypes = [ ];
     commands = [ ];
+    event = null;
+    fileType = null;
+    command = null;
     delay = false;
     optimize = true;
     extraPackages = [ ];
@@ -35,7 +38,8 @@ let
     options = {
       rokka = mkOption {
         type = types.anything;
-        description = "for type comparison.";
+        description =
+          "for type comparison. (Autocatically configured by rokka)";
         default = pluginConfigDefault.rokka;
         visible = false;
       };
@@ -47,7 +51,7 @@ let
 
       pname = mkOption {
         type = with types; nullOr str;
-        description = "pname.";
+        description = "pname. (Autocatically configured by rokka)";
         default = pluginConfigDefault.pname;
         visible = false;
       };
@@ -110,8 +114,29 @@ let
         default = pluginConfigDefault.fileTypes;
       };
 
+      event = mkOption {
+        type = with types; nullOr str;
+        description = "event. (Autocatically configured by rokka)";
+        default = pluginConfigDefault.event;
+        visible = false;
+      };
+
+      command = mkOption {
+        type = with types; nullOr str;
+        description = "command. (Autocatically configured by rokka)";
+        default = pluginConfigDefault.command;
+        visible = false;
+      };
+
+      fileType = mkOption {
+        type = with types; nullOr str;
+        description = "fileType. (Autocatically configured by rokka)";
+        default = pluginConfigDefault.fileType;
+        visible = false;
+      };
+
       delay = mkEnableOption "delay" // {
-        description = "delay.";
+        description = "delay. (Autocatically configured by rokka)";
         default = pluginConfigDefault.delay;
       };
 
