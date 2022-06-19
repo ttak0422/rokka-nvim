@@ -1,5 +1,5 @@
 { lib, plugins, optPlugins, allPlugins, allStartPlugins, allOptPlugins
-, eventPlugins, commandPlugins, fileTypePlugins }:
+, eventPlugins, commandPlugins, fileTypePlugins, neovimConfig }:
 
 let
   inherit (builtins) map toString length;
@@ -106,10 +106,15 @@ let
       ---------------------
       ${startupConfigs}
 
-      ---------------------
+      --------------------------
       -- Start plugin configs --
-      ---------------------
+      --------------------------
       ${startPluginConfigs}
+
+      --------------------
+      -- neovim configs --
+      --------------------
+      ${neovimConfig}
     '';
 
 in { inherit makeRokkaInit; }

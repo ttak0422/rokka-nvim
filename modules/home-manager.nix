@@ -350,6 +350,7 @@ let
   rokka-init = callPackage ./rokka-init {
     inherit plugins optPlugins allPlugins allStartPlugins allOptPlugins
       eventPlugins commandPlugins fileTypePlugins;
+    neovimConfig = cfg.extraConfig;
   };
 
   extraPackages = cfg.extraPackages
@@ -378,6 +379,12 @@ in {
         type = types.enum [ "trace" "debug" "info" "warn" "error" "fatal" ];
         description = "The log level of rokka.nvim.";
         default = "warn";
+      };
+
+      extraConfig = mkOption {
+        type = types.lines;
+        default = "";
+        description = "neovim config (lua).";
       };
 
       extraPackages = mkOption {
