@@ -8,7 +8,9 @@ let
   inherit (builtins) map;
   inherit (pkgs) callPackage;
   inherit (lib) flatten filter;
-  inherit (import ./util.nix lib) uniqueWith elemWith expandWith;
+  inherit (lib.attrsets) attrValues;
+  inherit (lib.lists) groupBy';
+  inherit (import ./util.nix lib) elemWith expandWith;
 
   cfg = config.programs.rokka-nvim;
 
@@ -153,6 +155,11 @@ let
     };
   };
 
+  #
+  # Type: (package | pluginUserConfigType) -> pluginUserConfigType
+  #
+  # Normalize by fill with default values.
+  #
   normalizePlugin = p:
     if p ? rokka then
       p // { pname = if p.as != null then p.as else p.plugin.pname; }
@@ -162,9 +169,97 @@ let
         pname = p.pname;
       };
 
+  #
+  # Type: a -> a -> a -> str -> a
+  #
+  # Try merge element.
+  #
+  # Example:
+  #   mergeElement 0 0 0 "foo" => 0
+  #   mergeElement 1 0 0 "bar" => 1
+  #   mergeElement 1 2 0 "baz" => error: Conflict `baz` value!
+  #
+  mergeElement = e1: e2: defaultValue: name:
+    if e1 == e2 then
+      e1
+    else if e1 != defaultValue && e2 != defaultValue then
+      throw "Conflict `${name}` value!"
+    else if e1 != defaultValue then
+      e1
+    else
+      e2;
+
+  #
+  # Type: pluginUserConfigType -> pluginUserConfigType -> pluginUserConfigType
+  #
+  # Try merge pluginUserConfig.
+  #
+  mergePluginConfig = p1: p2:
+    if p1.pname != null && p2.pname != null && p1.pname != p2.pname then
+      throw "Unable to merge `${p1.pname}` and `${p2.pname}` configs!"
+    else
+      let name = p1.pname;
+      in p1 // {
+        rokka = mergeElement p1.rokka p2.rokka pluginConfigDefault.rokka
+          "rokka (${name})";
+        plugin = mergeElement p1.plugin p2.plugin pluginConfigDefault.plugin
+          "plugin (${name})";
+        enable = mergeElement p1.enable p2.enable pluginConfigDefault.enable
+          "enable (${name})";
+        optional =
+          mergeElement p1.optional p2.optional pluginConfigDefault.optional
+          "optional (${name})";
+        pname = mergeElement p1.pname p2.pname pluginConfigDefault.pname
+          "pname (${name})";
+        startup = mergeElement p1.startup p2.startup pluginConfigDefault.startup
+          "startup (${name})";
+        config = mergeElement p1.config p2.config pluginConfigDefault.config
+          "config (${name})";
+        depends = mergeElement p1.depends p2.depends pluginConfigDefault.depends
+          "depends (${name})";
+        rtp =
+          mergeElement p1.rtp p2.rtp pluginConfigDefault.rtp "rtp (${name})";
+        as = mergeElement p1.as p2.as pluginConfigDefault.as "as (${name})";
+        events = mergeElement p1.events p2.events pluginConfigDefault.events
+          "events (${name})";
+        fileTypes =
+          mergeElement p1.fileTypes p2.fileTypes pluginConfigDefault.fileTypes
+          "fileTypes (${name})";
+        commands =
+          mergeElement p1.commands p2.commands pluginConfigDefault.commands
+          "commands (${name})";
+        delay = mergeElement p1.delay p2.delay pluginConfigDefault.delay
+          "delay (${name})";
+        optimize =
+          mergeElement p1.optimize p2.optimize pluginConfigDefault.optimize
+          "optimize (${name})";
+        extraPackages = mergeElement p1.extraPackages p2.extraPackages
+          pluginConfigDefault.extraPackages "extraPackages (${name})";
+      };
+
+  #
+  # Type: pluginUserConfigType list -> pluginUserConfigType list
+  #
+  # Flatten plugins hierarchy.
+  #
+  # [{ plugin = foo; depends = [{ plugin = bar; depends = [{ plugin = baz; depends = []; }]; }]; }]
+  #   => [ { plugin = foo; depends = [...]; } { plugin = bar; depends = [...]; } { plugin = baz; depends = []; } ]
+  #
+  # Note:
+  #   Plugin configurations merged automatically.
+  #
+  #   e.g.
+  #     plugins = [ { plugin = foo; config = "-- FOO"; } { plugin = bar; depends = [ foo ]; config = "-- BAR"; } ];
+  #       => When loading `bar` plugin when `foo` plugin is not loaded
+  #          1. resolve `bar` dependencies.
+  #            1-1. `packadd foo`.
+  #            1-2. run `foo` config. (-- FOO)
+  #          2. load `bar`.
+  #            1-1 `packadd bar`.
+  #            1-2 run `bar` config. (-- BAR)
+  #
   flattenPlugins = plugins:
     let
-      plugins' = map normalizePlugin plugins;
       f = ps:
         map (p:
           if p.depends == [ ] then
@@ -174,8 +269,52 @@ let
               depends' = map normalizePlugin p.depends;
               p' = p // { depends = depends'; };
             in [ p' ] ++ depends') ps;
-    in uniqueWith (p: p.pname) (flatten (f plugins'));
+      # normalize args.
+      ps1 = map normalizePlugin plugins;
+      # just flatten dependencies.
+      ps2 = flatten (f ps1);
+      # normalized
+      ps3 = map normalizePlugin ps2;
+      # aggregate configurations. Type: AttrSet[str][pluginUserConfigType]
+      ps4 = groupBy' (acc: x: mergePluginConfig acc x) pluginConfigDefault
+        (x: x.pname) ps3;
+    in attrValues ps4;
 
+  rokkaNvim = normalizePlugin (callPackage ./rokka { });
+
+  # Type: pluginUserConfigType list
+  plugins = let
+    ps1 = map normalizePlugin cfg.plugins;
+    ps2 = filter (p: p.enable) ps1;
+  in [ rokkaNvim ] ++ ps2;
+  allPlugins = flattenPlugins plugins;
+  allStartPlugins = filter (p: !p.optional) allPlugins;
+
+  #
+  # Type: pluginUserConfigType -> bool
+  #
+  # Check if the plugin exists only in `opt`.
+  #
+  optOnly = plugin: !(elemWith (p: p.pname) plugin allStartPlugins);
+
+  #
+  # Type: pluginUserConfigType -> bool
+  #
+  allOptPlugins = filter (p: p.optional && optOnly p) allPlugins;
+  allEventPlugins = filter (p: p.events != [ ]) allOptPlugins;
+  allCmdPlugins = filter (p: p.commands != [ ]) allOptPlugins;
+  allFtPlugins = filter (p: p.commands != [ ]) allOptPlugins;
+
+  #
+  # Type: (package | pluginUserConfigType) -> pluginUserConfigType
+  #
+  # Optimize plugin dependencies.
+  #
+  # Example:
+  #   allStartPlugins = [{ plugin = foo; optional = false; }]
+  #   optimizeDepends { plugin = bar; depends = [ foo bar ]; }]
+  #     => { plugin = bar; depends = [ bar ]; }
+  #
   optimizeDepends = plugin:
     let
       plugin' = normalizePlugin plugin;
@@ -187,31 +326,21 @@ let
           in p // { depends = depends'; };
     in f plugin';
 
-  rokkaNvim = pluginConfigDefault // { plugin = callPackage ./rokka { }; };
-
-  plugins = let
-    ps1 = map normalizePlugin cfg.plugins;
-    ps2 = filter (p: p.enable) ps1;
-  in [ rokkaNvim ] ++ ps2;
-  allPlugins = flattenPlugins plugins;
-  allStartPlugins = filter (p: !p.optional) allPlugins;
-  allOptPlugins =
-    filter (p: p.optional && !(elemWith (p': p'.pname) p allStartPlugins))
-    allPlugins;
-  allEventPlugins = filter (p: p.events != [ ]) allOptPlugins;
-  allCmdPlugins = filter (p: p.commands != [ ]) allOptPlugins;
-  allFtPlugins = filter (p: p.commands != [ ]) allOptPlugins;
-
   optPlugins = map optimizeDepends (filter (p: p.optional) plugins);
 
+  # Type: pluginUserConfigType list
   eventPlugins = let
     plugins' = filter (p: p.events != [ ]) allOptPlugins;
     f = expandWith (x: x.events) (src: e: src // { event = e; });
   in flatten (map f plugins');
+
+  # Type: pluginUserConfigType list
   commandPlugins = let
     plugins' = filter (p: p.commands != [ ]) allOptPlugins;
     f = expandWith (x: x.commands) (src: c: src // { command = c; });
   in flatten (map f plugins');
+
+  # Type: pluginUserConfigType list
   fileTypePlugins = let
     plugins' = filter (p: p.fileTypes != [ ]) allOptPlugins;
     f = expandWith (x: x.fileTypes) (src: ft: src // { fileType = ft; });
