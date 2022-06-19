@@ -168,7 +168,7 @@ let
     allPlugins;
   allEventPlugins = filter (p: p.events != [ ]) allOptPlugins;
   allCmdPlugins = filter (p: p.commands != [ ]) allOptPlugins;
-  allFtPlugins = filter (p: p.commands != [ ]) allPlugins;
+  allFtPlugins = filter (p: p.commands != [ ]) allOptPlugins;
 
   optPlugins = map optimizeDepends (filter (p: p.optional) plugins);
 
