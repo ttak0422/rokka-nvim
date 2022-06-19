@@ -17,7 +17,7 @@ let
     plugin = null;
     enable = true;
     optional = true;
-    name = null;
+    pname = null;
     startup = null;
     config = null;
     depends = [ ];
@@ -43,6 +43,13 @@ let
       plugin = mkOption {
         type = types.package;
         description = "plugin.";
+      };
+
+      pname = mkOption {
+        type = with types; nullOr str;
+        description = "pname.";
+        default = pluginConfigDefault.pname;
+        visible = false;
       };
 
       enable = mkEnableOption "enable" // {
