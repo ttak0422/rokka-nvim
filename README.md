@@ -39,15 +39,15 @@
 programs.rokka-nvim = {
   enable = true;
   logLevel = "debug";
-  plugins = [
-    pkgs.vimPlugins.ale
+  plugins = with pkgs.vimPlugins; [
+    ale
     {
-      plugin = pkgs.vimPlugins.nvim-cmp;
-      depends = [ pkgs.vimPlugins.cmp-path ];
+      plugin = nvim-cmp;
+      depends = [ cmp-path ];
       startup = "";
       config = ''
         -- WIP: rokka-nvim does support `after`. You need to call `after` explicitly.
-        vim.cmd[[silent source ${pkgs.vimPlugins.cmp-path}/after/plugin/cmp_path.lua]]
+        vim.cmd[[silent source ${cmp-path}/after/plugin/cmp_path.lua]]
 
         vim.opt.completeopt = "menu,menuone,noselect"
         local cmp = require'cmp'
@@ -60,11 +60,11 @@ programs.rokka-nvim = {
       events = [ "InsertEnter" ];
     }
     {
-      plugin = pkgs.vimPlugins.vim-sensible;
+      plugin = vim-sensible;
       optional = false;
     }
     {
-      plugin = pkgs.vimPlugins.ayu-vim;
+      plugin = ayu-vim;
       startup = ''
         vim.cmd([[set termguicolors]])
         vim.cmd([[let ayucolor="light"]])
@@ -72,32 +72,32 @@ programs.rokka-nvim = {
       '';
     }
     {
-      plugin = pkgs.vimPlugins.telescope-nvim;
-      depends = with pkgs.vimPlugins; [ plenary-nvim ];
+      plugin = telescope-nvim;
+      depends = [ plenary-nvim ];
       commands = [ "Telescope" ];
     }
     {
-      plugin = pkgs.vimPlugins.diffview-nvim;
-      depends = [ { plugin = pkgs.vimPlugins.plenary-nvim; } ];
+      plugin = diffview-nvim;
+      depends = [ { plugin = plenary-nvim; } ];
       commands = [ "DiffviewOpen" ];
     }
     {
-      plugin = pkgs.vimPlugins.hop-nvim;
+      plugin = hop-nvim;
       events = [ "InsertEnter" ];
       config = ''
         require'hop'.setup { keys = 'etovxqpdygfblzhckisuran' }
       '';
     }
     {
-      plugin = pkgs.vimPlugins.neoscroll-nvim;
+      plugin = neoscroll-nvim;
       delay = true;
     }
     {
-      plugin = pkgs.vimPlugins.vim-nix;
+      plugin = vim-nix;
       fileTypes = [ "nix" ];
     }
     {
-      plugin = pkgs.vimPlugins.glow-nvim;
+      plugin = glow-nvim;
       commands = [ "Glow" ];
       extraPackages = [ pkgs.glow ];
     }
