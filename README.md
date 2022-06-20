@@ -1,6 +1,11 @@
-# [WIP] rokka-nvim
+# rokka-nvim 
 
 > "六花 (rokka)" is another name for snow in Japanese.
+
+## About.
+
+Rokka adds a thin configuration layer of the NeoVim plugins to [home-manager](https://github.com/nix-community/home-manager)'s configuration.
+It provides both usability and performance by implementing the settings and optimizations on the Nix side and working with Lua, 
 
 ## Options.
 
@@ -36,6 +41,10 @@
 ## Example.
 
 ```nix
+programs.neovim = {
+  enable = true;
+  package = pkgs.neovim-nightly;
+};
 programs.rokka-nvim = {
   enable = true;
   logLevel = "debug";
@@ -104,3 +113,5 @@ programs.rokka-nvim = {
   ];
 };
 ```
+
+<img alt="nix" src="https://builtwithnix.org/badge.svg">
