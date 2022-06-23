@@ -1,6 +1,8 @@
-{ lib, stdenv, nix-filter, allPlugins }:
+{ pkgs, lib, stdenv, nix-filter, allPlugins }:
 let
   inherit (builtins) map;
+  inherit (pkgs.vimUtils) packDir;
+  inherit (lib) filter;
   inherit (lib.strings) concatStringsSep;
   inherit (stdenv) mkDerivation;
 
@@ -26,6 +28,29 @@ let
         ];
       };
     });
+
+  allPlugins' = map
+    (p: if p.optimize then p // { plugin = optimizePackage p.plugin; } else p)
+    allPlugins;
+
+  locatePluginFt = p:
+    let
+      name = p.pname;
+      rtp = if isNull p.rtp then "" else p.rtp;
+      plugin = p.plugin;
+    in ''
+      if [ -e ${plugin}/${rtp}/ftdetect ] && [ -n "$(ls ${plugin}/${rtp}/ftdetect)" ]; then
+        mkdir -p $out/ftdetect/${name}
+        ln -sf ${plugin}/${rtp}/ftdetect/* $out/ftdetect/${name}
+      fi
+
+      if [ -e ${plugin}/${rtp}/ftplugin ] && [ -n "$(ls ${plugin}/${rtp}/ftplugin)" ]; then
+        mkdir -p $out/ftplugin/${name}
+        ln -sf ${plugin}/${rtp}/ftplugin/* $out/ftplugin/${name}
+      fi
+    '';
+
+  locatePluginsFt = map locatePluginFt;
 
   # start/opt directories must be created before this.
   locateOptimizedPlugin = p:
@@ -61,12 +86,16 @@ let
   locatePlugins = map
     (p: if p.optimize then locateOptimizedPlugin p else locateNormalPlugin p);
 
-in mkDerivation {
-  name = "rokka-pack";
-  src = ./.;
-  preferLocalBuild = true;
-  installPhase = concatStringsSep "\n" ([
-    "mkdir -p $out/pack/${packpath}/start"
-    "mkdir -p $out/pack/${packpath}/opt"
-  ] ++ (locatePlugins allPlugins));
+  start = map (p: p.plugin) (filter (p: !p.optional) allPlugins');
+  opt = map (p: p.plugin) (filter (p: p.optional) allPlugins');
+
+in {
+  pack = packDir { packpath = { inherit start opt; }; };
+  ft = mkDerivation {
+    name = "rokka-ft";
+    src = ./.;
+    preferLocalBuild = true;
+    installPhase = concatStringsSep "\n"
+      (locatePluginsFt (filter (p: p.optimize) allPlugins));
+  };
 }

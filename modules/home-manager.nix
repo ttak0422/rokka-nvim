@@ -400,17 +400,16 @@ in {
     xdg.configFile = {
       "nvim/init.vim".text = mkAfter ''
         " rokka-nvim
-        set packpath^=${rokka-pack}
-        set runtimepath^=${rokka-pack}
-        runtime! ftdetect/**/*.vim
-        runtime! ftdetect/**/*.lua
+        set packpath^=${rokka-pack.pack}
+        set runtimepath^=${rokka-pack.pack}
+        runtime! ${rokka-pack.ft}/**/*.vim
+        runtime! ${rokka-pack.ft}/**/*.lua
         lua require 'init-rokka'
       '';
       "nvim/lua/init-rokka.lua".text = rokka-init.makeRokkaInit {
         config = {
           log_plugin = "rokka.nvim";
           log_level = cfg.logLevel;
-
           loader_delay_time = cfg.delayTime;
         };
       };
