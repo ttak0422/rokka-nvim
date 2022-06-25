@@ -1,5 +1,6 @@
 {
-  description = "[WIP] Neovim Plugin Manager for Nix.";
+  description = "Neovim Plugin Manager for Nix.";
+
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
