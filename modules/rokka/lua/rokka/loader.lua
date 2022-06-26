@@ -23,7 +23,7 @@ local function load_opt_plugin(self, plugin_name, chain)
   -- resolve dependencies.
   for _, v in ipairs(plugin.opt_depends) do
     if not(chain[v]) then
-      self:load_opt_plugin(v)
+      self:load_opt_plugin(v, chain)
     end
   end
 
