@@ -95,7 +95,10 @@ in {
     name = "rokka-ft";
     src = ./.;
     preferLocalBuild = true;
-    installPhase = concatStringsSep "\n"
-      (locatePluginsFt (filter (p: p.optimize) allPlugins));
+    installPhase = ''
+      mkdir -p $out/ftdetect
+      mkdir -p $out/ftplugin
+    '' + (concatStringsSep "\n"
+      (locatePluginsFt (filter (p: p.optimize) allPlugins)));
   };
 }

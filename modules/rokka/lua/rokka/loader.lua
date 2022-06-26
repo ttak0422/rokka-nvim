@@ -2,27 +2,31 @@ local loader = {}
 
 local group_name = "rokka_loader"
 
-function load_opt_plugin(self, plugin_name)
+local function load_opt_plugin(self, plugin_name, chain)
   local plugin = self.opt_plugins[plugin_name]
+  chain = chain or {}
+  chain[plugin_name] = true
 
-  if plugin == nil then 
+  if plugin == nil then
     self.logger.warn("opt plugin not found.", plugin_name)
     return
   end
 
-  if plugin.loaded then 
+  if plugin.loaded then
     self.logger.debug("loaded ", plugin_name)
     return
-  end 
+  end
 
   self.logger.debug("[Start] load ", plugin_name)
 
   -- TODO: support after option.
   -- resolve dependencies.
-  for _, v in ipairs(plugin.opt_depends) do 
-    self:load_opt_plugin(v)
-  end 
-  
+  for _, v in ipairs(plugin.opt_depends) do
+    if not(chain[v]) then
+      self:load_opt_plugin(v)
+    end
+  end
+
   vim.cmd("packadd " .. plugin_name)
 
   -- apply config.
@@ -32,7 +36,7 @@ function load_opt_plugin(self, plugin_name)
   plugin.loaded = true
 end
 
-function setup_delay_loader(self)
+local function setup_delay_loader(self)
   self.logger.debug("[Setup] delay loader.")
   vim.defer_fn(function ()
     self.logger.debug("[Start] load plugin (delay).")
@@ -41,9 +45,9 @@ function setup_delay_loader(self)
   end, self.delay_time)
 end
 
-function setup_event_loader(self)
+local function setup_event_loader(self)
   self.logger.debug("[Setup] event loader.")
-  for e, ps in pairs(self.event_plugins) do 
+  for e, ps in pairs(self.event_plugins) do
     self.logger.debug("[Setup] event.", e)
     vim.api.nvim_create_autocmd({ e }, {
       group = self.group_name,
@@ -58,9 +62,9 @@ function setup_event_loader(self)
   end
 end
 
-function setup_cmd_loader(self)
+local function setup_cmd_loader(self)
   self.logger.debug("[Setup] cmd loader.")
-  for cmd, plugins in pairs(self.cmd_plugins) do 
+  for cmd, plugins in pairs(self.cmd_plugins) do
     self.logger.debug("[Setup] cmd.", cmd)
     vim.api.nvim_create_autocmd({ "CmdUndefined" }, {
       group = self.group_name,
@@ -75,9 +79,9 @@ function setup_cmd_loader(self)
   end
 end
 
-function setup_ft_loader(self)
+local function setup_ft_loader(self)
   self.logger.debug("[Setup] ft loader.")
-  for ft, plugins in pairs(self.ft_plugins) do 
+  for ft, plugins in pairs(self.ft_plugins) do
     self.logger.debug("[Setup] ft.", ft)
     vim.api.nvim_create_autocmd({ "FileType" }, {
       group = self.group_name,
