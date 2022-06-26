@@ -21,7 +21,7 @@ rokka.init = function(config)
     delay_plugins = config.loader_delay_plugins,
     delay_time = config.loader_delay_time,
   }
-  loader = require("rokka.loader").new(loader_config)
+  local loader = require("rokka.loader").new(loader_config)
   loader:setup_delay_loader()
   loader:setup_event_loader()
   loader:setup_cmd_loader()
