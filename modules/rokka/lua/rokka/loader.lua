@@ -2,8 +2,10 @@ local loader = {}
 
 local group_name = "rokka_loader"
 
-local function load_opt_plugin(self, plugin_name)
+local function load_opt_plugin(self, plugin_name, chain)
   local plugin = self.opt_plugins[plugin_name]
+  chain = chain or {}
+  chain[plugin_name] = true
 
   if plugin == nil then
     self.logger.warn("opt plugin not found.", plugin_name)
@@ -20,7 +22,9 @@ local function load_opt_plugin(self, plugin_name)
   -- TODO: support after option.
   -- resolve dependencies.
   for _, v in ipairs(plugin.opt_depends) do
-    self:load_opt_plugin(v)
+    if not(chain[v]) then
+      self:load_opt_plugin(v)
+    end
   end
 
   vim.cmd("packadd " .. plugin_name)
