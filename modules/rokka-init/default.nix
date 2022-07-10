@@ -20,7 +20,13 @@ let
     ["${p.pname}"] = {
       loaded = false,
       config = ${
-        if isNonNull p.config then "function() ${p.config} end" else "nil"
+        if isNonNull p.config then ''
+
+          function()
+            ${p.config}
+          end
+        '' else
+          "nil"
       },
       opt_depends = ${simpleListToTable (p': "'${p'.pname}'") p.depends},
     }
