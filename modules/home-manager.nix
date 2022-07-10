@@ -6,7 +6,7 @@ with lib;
 
 let
   inherit (builtins) map;
-  inherit (pkgs) callPackage;
+  inherit (pkgs) callPackage writeText;
   inherit (lib) flatten filter;
   inherit (lib.attrsets) attrValues;
   inherit (lib.lists) groupBy';
@@ -355,6 +355,14 @@ let
 
   extraPackages = cfg.extraPackages
     ++ (flatten (map (p: p.extraPackages) allPlugins));
+
+  initializeCode = writeText "rokka-init" (rokka-init.makeRokkaInit {
+    config = {
+      log_plugin = "rokka.nvim";
+      log_level = cfg.logLevel;
+      loader_delay_time = cfg.delayTime;
+    };
+  });
 in {
   options = {
     programs.rokka-nvim = {
@@ -404,15 +412,8 @@ in {
         set runtimepath^=${rokka-pack.pack}
         runtime! ${rokka-pack.ft}/**/*.vim
         runtime! ${rokka-pack.ft}/**/*.lua
-        lua require 'init-rokka'
+        lua dofile('${initializeCode}')
       '';
-      "nvim/lua/init-rokka.lua".text = rokka-init.makeRokkaInit {
-        config = {
-          log_plugin = "rokka.nvim";
-          log_level = cfg.logLevel;
-          loader_delay_time = cfg.delayTime;
-        };
-      };
     };
   };
 }
