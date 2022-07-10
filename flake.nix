@@ -1,7 +1,6 @@
 {
   description = "Neovim Plugin Manager for Nix.";
 
-
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";

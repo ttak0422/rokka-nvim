@@ -1,4 +1,4 @@
-{ lib, plugins, optPlugins, allPlugins, allStartPlugins, allOptPlugins
+{ pkgs, lib, plugins, optPlugins, allPlugins, allStartPlugins, allOptPlugins
 , eventPlugins, commandPlugins, fileTypePlugins, neovimConfig }:
 
 let
@@ -16,26 +16,27 @@ let
 
   simpleListToTable = f: xs: "{${concatC (map f xs)}}";
 
-  mkOptPluginConfig = p: ''
-    ["${p.pname}"] = {
-      loaded = false,
-      config = ${
-        if isNonNull p.config then ''
+  mkOptPluginConfig = p:
+    let cfg = pkgs.writeText p.pname p.config;
+    in ''
+      ["${p.pname}"] = {
+        loaded = false,
+        config = ${
+          if isNonNull p.config then
+            "function() dofile('${cfg}') end"
+          else
+            "nil"
+        },
+        opt_depends = ${simpleListToTable (p': "'${p'.pname}'") p.depends},
+      }
+    '';
 
-          function()
-            ${p.config}
-          end
-        '' else
-          "nil"
-      },
-      opt_depends = ${simpleListToTable (p': "'${p'.pname}'") p.depends},
-    }
-  '';
-
-  mkStartPluginConfig = p: ''
-    -- ${p.pname}
-    ${p.config}
-  '';
+  mkStartPluginConfig = p:
+    let cfg = pkgs.writeText p.pname p.config;
+    in ''
+      -- ${p.pname}
+      dofile('${cfg}')
+    '';
 
   makeStartupConfig = p: ''
     -- ${p.pname}
