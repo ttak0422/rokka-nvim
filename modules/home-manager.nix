@@ -297,9 +297,7 @@ let
   #
   optOnly = plugin: !(elemWith (p: p.pname) plugin allStartPlugins);
 
-  #
-  # Type: pluginUserConfigType -> bool
-  #
+  # Type: pluginUserConfigType list
   allOptPlugins = filter (p: p.optional && optOnly p) allPlugins;
   allEventPlugins = filter (p: p.events != [ ]) allOptPlugins;
   allCmdPlugins = filter (p: p.commands != [ ]) allOptPlugins;
