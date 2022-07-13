@@ -90,7 +90,7 @@ let
   opt = map (p: p.plugin) (filter (p: p.optional) allPlugins');
 
 in {
-  pack = packDir { packpath = { inherit start opt; }; };
+  pack = packDir { "${packpath}" = { inherit start opt; }; };
   ft = mkDerivation {
     name = "rokka-ft";
     src = ./.;
