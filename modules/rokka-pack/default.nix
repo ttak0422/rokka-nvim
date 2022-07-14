@@ -3,7 +3,7 @@ let
   inherit (builtins) map;
   inherit (pkgs.vimUtils) packDir;
   inherit (lib) filter;
-  inherit (lib.strings) concatStringsSep;
+  inherit (lib.strings) concatStringsSep optionalString;
   inherit (stdenv) mkDerivation;
 
   packpath = "rokka";
@@ -38,17 +38,20 @@ let
       name = p.pname;
       rtp = if isNull p.rtp then "" else p.rtp;
       plugin = p.plugin;
-    in ''
-      if [ -e ${plugin}/${rtp}/ftdetect ] && [ -n "$(ls ${plugin}/${rtp}/ftdetect)" ]; then
-        mkdir -p $out/ftdetect/${name}
-        ln -sf ${plugin}/${rtp}/ftdetect/* $out/ftdetect/${name}
-      fi
-
-      if [ -e ${plugin}/${rtp}/ftplugin ] && [ -n "$(ls ${plugin}/${rtp}/ftplugin)" ]; then
-        mkdir -p $out/ftplugin/${name}
-        ln -sf ${plugin}/${rtp}/ftplugin/* $out/ftplugin/${name}
-      fi
-    '';
+      relocateFtdetectCmd = ''
+        if [ -e ${plugin}/${rtp}/ftdetect ] && [ -n "$(ls ${plugin}/${rtp}/ftdetect)" ]; then
+          mkdir -p $out/ftdetect/${name}
+          ln -sf ${plugin}/${rtp}/ftdetect/* $out/ftdetect/${name}
+        fi
+      '';
+      relocateFtpluginCmd = ''
+        if [ -e ${plugin}/${rtp}/ftplugin ] && [ -n "$(ls ${plugin}/${rtp}/ftplugin)" ]; then
+          mkdir -p $out/ftplugin/${name}
+          ln -sf ${plugin}/${rtp}/ftplugin/* $out/ftplugin/${name}
+        fi
+      '';
+    in (optionalString p.relocateFtdetect relocateFtdetectCmd)
+    + (optionalString p.relocateFtplugin relocateFtpluginCmd);
 
   locatePluginsFt = map locatePluginFt;
 

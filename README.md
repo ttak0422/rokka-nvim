@@ -36,6 +36,8 @@ It provides both usability and performance by implementing the settings and opti
 | fileTypes | listOf str | [] | - |
 | delay | bool | false | delay flag. |
 | optimize | bool | true | optimize flag. |
+| relocateFtdetect | bool | true | - |
+| relocateFtplugin | bool | true | - |
 | extraPackages | listOf package | [] | nix package. |
 
 ## Example.

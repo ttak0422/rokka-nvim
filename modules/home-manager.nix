@@ -33,6 +33,8 @@ let
     command = null;
     delay = false;
     optimize = true;
+    relocateFtdetect = true;
+    relocateFtplugin = true;
     extraPackages = [ ];
   };
 
@@ -147,6 +149,16 @@ let
         default = pluginConfigDefault.optimize;
       };
 
+      relocateFtdetect = mkEnableOption "relocateFtdetect" // {
+        description = "relocate ftdetect.";
+        default = pluginConfigDefault.relocateFtdetect;
+      };
+
+      relocateFtplugin = mkEnableOption "relocateFtplugin" // {
+        description = "relocate ftplugin.";
+        default = pluginConfigDefault.relocateFtplugin;
+      };
+
       extraPackages = mkOption {
         type = with types; listOf package;
         description = "extraPackages.";
@@ -233,6 +245,10 @@ let
         optimize =
           mergeElement p1.optimize p2.optimize pluginConfigDefault.optimize
           "optimize (${name})";
+        relocateFtdetect = mergeElement p1.relocateFtdetect p2.relocateFtdetect
+          pluginConfigDefault.relocateFtdetect "relocateFtdeteca (${name})";
+        relocateFtplugin = mergeElement p1.relocateFtplugin p2.relocateFtplugin
+          pluginConfigDefault.relocateFtplugin "relocateFtplugin (${name})";
         extraPackages = mergeElement p1.extraPackages p2.extraPackages
           pluginConfigDefault.extraPackages "extraPackages (${name})";
       };
