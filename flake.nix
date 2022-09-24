@@ -16,8 +16,7 @@
 
   outputs = { self, nixpkgs, flake-utils, nix-filter, ... }@inputs:
     {
-      hmModule = import ./modules/home-manager.nix
-        (inputs // { nix-filter = nix-filter.lib; });
+      hmModule = import ./modules/hm-nvim-wrapper.nix inputs;
     } // flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
