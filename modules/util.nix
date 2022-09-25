@@ -1,37 +1,40 @@
 lib:
 
 let
-  inherit (builtins) map elem;
+  inherit (builtins) map elem toString;
+  inherit (lib) concatStringsSep filter;
+  inherit (lib.attrsets) mapAttrs mapAttrsToList;
   inherit (lib.lists) foldl';
+
+  concatC = concatStringsSep ",";
 in rec {
 
-  /* Type: uniqeWith :: (a -> b) -> [a] -> [a]
-
-     Example:
-       uniqueWith (x: x.name) [ { name = "foo"; age = 10; } { name = "bar"; age = 20; } { name = "foo"; age = 20; } ]
-       => [ { name = "foo"; age = 10; } { name = "bar"; age = 20; } ]
-  */
+  # Type: uniqeWith :: (a -> b) -> [a] -> [a]
   uniqueWith = f:
     foldl' (acc: x: if elem (f x) (map f acc) then acc else acc ++ [ x ]) [ ];
 
-  /* Type: elemWith :: (a -> b) -> a -> [a] -> bool
-
-     Example:
-       elemWith (x: x.name) { name = "foo"; age = 10; }  [ { name = "foo"; age = 20; } { name = "bar"; age = 30; } ]
-       => true
-
-       elemWith (x: x.age) { name = "foo"; age = 10; }  [ { name = "foo"; age = 20; } { name = "bar"; age = 30; } ]
-       => false
-  */
+  # Type: elemWith :: (a -> b) -> a -> [a] -> bool
   elemWith = f: x: xs: elem (f x) (map f xs);
 
-  /* Type: expandWith :: (a -> b) -> (a -> b -> c) -> a -> c
-
-     Example:
-       expandWith (x: x.items) (src: x: src // { item = x; }) { items = [ "foo" "bar" "baz" ]; }
-       => [ { item = "foo"; items = [ ... ]; } { item = "bar"; items = [ ... ]; } { item = "baz"; items = [ ... ]; } ]
-  */
+  # Type: expandWith :: (a -> b) -> (a -> b -> c) -> a -> c
   expandWith = targetSelector: generator: src:
     map (generator src) (targetSelector src);
+
+  # Type: a -> a -> a -> str -> a
+  mergeElement = e1: e2: defaultValue: name:
+    if e1 != defaultValue && e2 != defaultValue then
+      throw "Conflict `${name}` value!"
+    else if e1 == e2 then
+      e1
+    else if e1 != defaultValue then
+      e1
+    else
+      e2;
+
+  # Type: (a -> b) -> [a] -> str
+  toLuaTableWith = f: xs: "{${concatC (map f xs)}}";
+
+  # Type: [a] -> str
+  toLuaTable = toLuaTableWith (x: x);
 
 }

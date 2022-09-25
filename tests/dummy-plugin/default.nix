@@ -1,7 +1,8 @@
 { vimUtils }:
 vimUtils.buildVimPlugin {
-  pname = "rokka.nvim";
-  version = "0.2.0";
+  pname = "dummy";
+  version = "0.0.1";
   src = ./.;
   preferLocalBuild = true;
 }
+

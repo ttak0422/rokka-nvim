@@ -19,7 +19,6 @@ local function load_opt_plugin(self, plugin_name, chain)
 
   self.logger.debug("[Start] load ", plugin_name)
 
-  -- TODO: support after option.
   -- resolve dependencies.
   for _, v in ipairs(plugin.opt_depends) do
     if not(chain[v]) then
@@ -28,6 +27,12 @@ local function load_opt_plugin(self, plugin_name, chain)
   end
 
   vim.cmd("packadd " .. plugin_name)
+
+  for _, v in ipairs(plugin.opt_depends_after) do
+    if not(chain[v]) then
+      self:load_opt_plugin(v, chain)
+    end
+  end
 
   -- apply config.
   if plugin.config then plugin.config() end
