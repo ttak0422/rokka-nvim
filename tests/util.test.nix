@@ -4,7 +4,7 @@ with pkgs.lib;
 
 let util = import ./../modules/util.nix pkgs.lib;
 in nixt.mkSuites {
-  "uniqueWith" = let
+  "list util" = let
     xs = [
       {
         name = "foo";
@@ -51,7 +51,7 @@ in nixt.mkSuites {
     } ys) == false;
 
     "expandWith" = let xs = [ "foo" "bar" "baz" ];
-    in (util.expandWith (x: "x:.items") (src: x: src // { item = x; }) {
+    in (util.expandWith (x: x.items) (src: x: src // { item = x; }) {
       items = xs;
     }) == [
       {
