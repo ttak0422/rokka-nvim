@@ -17,7 +17,7 @@ It provides both usability and performance by implementing the settings and opti
 | plugins | listOf (`pluginUserConfigType` \| package) | [] | vim plugins. |
 | extraPackages | listOf package | [] | nix package. |
 | delayTime | int (milliseconds) | 100 | use for delay loader. |
-| logLevel | enum | "warn" | log level ("trace" \| "debug" \| "info" \| "warn" \| "error" \| "fatal"). |
+| logLevel | enum | "warn" | log level ("debug" \| "info" \| "warn" \| "error"). |
 
 ### rokka plugin option (`pluginUserConfigType`)
 
@@ -29,15 +29,12 @@ It provides both usability and performance by implementing the settings and opti
 | startup | nullOr str | null | - |
 | config | nullOr str | null | - |
 | depends | listOf (`pluginUserConfigType` \| package) | [] | - |
-| rtp | nullOr str | null | subdirectory. |
-| as | nullOr str | null | use different name for plugin. |
+| dependsAfter | listOf (`pluginUserConfigType` \| package) | [] | - |
 | events | listOf str | [] | - |
 | commands | listOf str | [] | - |
 | fileTypes | listOf str | [] | - |
 | delay | bool | false | delay flag. |
 | optimize | bool | true | optimize flag. |
-| relocateFtdetect | bool | true | - |
-| relocateFtplugin | bool | true | - |
 | extraPackages | listOf package | [] | nix package. |
 
 ## Example.
@@ -114,6 +111,12 @@ programs.rokka-nvim = {
     }
   ];
 };
+```
+
+## Test.
+
+```bash
+nixt ./tests/resolver.test.nix -v
 ```
 
 <img alt="nix" src="https://builtwithnix.org/badge.svg">
