@@ -14,23 +14,11 @@ in rec {
   normalizePlugin = p:
     if p ? rokka then
       p // { pname = if p.pname == null then p.plugin.pname else p.pname; }
-    else {
-      rokka = pluginUserConfigDefault.rokka;
-      plugin = p;
-      enable = pluginUserConfigDefault.enable;
-      optional = pluginUserConfigDefault.optional;
-      pname = p.pname;
-      startup = pluginUserConfigDefault.startup;
-      config = pluginUserConfigDefault.config;
-      depends = pluginUserConfigDefault.depends;
-      dependsAfter = pluginUserConfigDefault.dependsAfter;
-      events = pluginUserConfigDefault.events;
-      fileTypes = pluginUserConfigDefault.fileTypes;
-      commands = pluginUserConfigDefault.commands;
-      delay = pluginUserConfigDefault.delay;
-      optimize = pluginUserConfigDefault.optimize;
-      extraPackages = pluginUserConfigDefault.extraPackages;
-    };
+    else
+      pluginUserConfigDefault // {
+        plugin = p;
+        pname = p.pname;
+      };
 
   # Type:
   #   (package | pluginUserConfigType) list -> pluginUserConfigType list
