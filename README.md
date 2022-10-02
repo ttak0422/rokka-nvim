@@ -43,10 +43,6 @@ It provides both usability and performance by implementing the settings and opti
 ## Example.
 
 ```nix
-programs.neovim = {
-  enable = true;
-  package = pkgs.neovim-nightly;
-};
 programs.rokka-nvim = {
   enable = true;
   logLevel = "debug";
