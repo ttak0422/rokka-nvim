@@ -18,6 +18,7 @@ It provides both usability and performance by implementing the settings and opti
 | extraPackages | listOf package | [] | nix package. |
 | delayTime | int (milliseconds) | 100 | use for delay loader. |
 | logLevel | enum | "warn" | log level ("debug" \| "info" \| "warn" \| "error"). |
+| package | package | pkgs.neovim-unwrapped | alias for nvim.package |
 | withNodeJs | bool | false | alias for nvim.withNodeJs |
 | withPython3 | bool | false | alias for nvim.withPython3 |
 | withRuby | bool | false | alias for nvim.withRuby |

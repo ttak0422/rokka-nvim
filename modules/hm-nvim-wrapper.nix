@@ -33,6 +33,12 @@ in {
       default = "warn";
     };
 
+    package = mkOption {
+      type = types.package;
+      description = "alias for nvim.package";
+      default = pkgs.neovim-unwrapped;
+    };
+
     loaderDelayTime = mkOption {
       type = types.int;
       default = 100;
@@ -80,6 +86,7 @@ in {
   config = mkIf cfg.enable {
     programs.neovim = {
       enable = true;
+      package = cfg.package;
       plugins = mappingPlugins rokkaConfig.plugins;
       extraConfig = mkBefore ''
         ${cfg.extraConfig}
