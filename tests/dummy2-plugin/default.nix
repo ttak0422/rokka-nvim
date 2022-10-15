@@ -5,4 +5,3 @@ vimUtils.buildVimPlugin {
   src = ./.;
   preferLocalBuild = true;
 }
-

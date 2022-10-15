@@ -112,6 +112,11 @@ programs.rokka-nvim = {
   ];
 };
 ```
+## Develop.
+
+```bash
+direnv allow
+```
 
 ## Test.
 
