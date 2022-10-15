@@ -5,4 +5,3 @@ stdenv.mkDerivation {
   src = ./.;
   preferLocalBuild = true;
 }
-
