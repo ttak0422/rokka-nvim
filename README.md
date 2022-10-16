@@ -34,6 +34,7 @@ It provides both usability and performance by implementing the settings and opti
 | config | nullOr str | null | - |
 | depends | listOf (`pluginUserConfigType` \| package) | [] | - |
 | dependsAfter | listOf (`pluginUserConfigType` \| package) | [] | - |
+| modules | listOf str | [] | - |
 | events | listOf str | [] | - |
 | commands | listOf str | [] | - |
 | fileTypes | listOf str | [] | - |
@@ -108,6 +109,10 @@ programs.rokka-nvim = {
       plugin = glow-nvim;
       commands = [ "Glow" ];
       extraPackages = [ pkgs.glow ];
+    }
+    {
+      plugin = toolwindow-nvim;
+      modules = [ "toolwindow" ];
     }
   ];
 };
