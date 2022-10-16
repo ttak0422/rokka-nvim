@@ -43,6 +43,28 @@ local function load_opt_plugin(self, plugin_name, chain)
 	plugin.loaded = true
 end
 
+local function setup_module_loader(self)
+	self.logger.debug("[Setup] module loader.")
+
+	local function custom_loader(module_name)
+		local plugins = self.module_plugins[module_name]
+		if not plugins or plugins.flag then
+			return nil
+		end
+		plugins.flag = true
+		self.logger.debug("[Start] load plugin (module).", module_name)
+		for _, plugin in ipairs(plugins) do
+			self:load_opt_plugin(plugin)
+		end
+		self.logger.debug("[End] load plugin (module).", module_name)
+	end
+
+	if not vim.g.rokka_custom_loader_enabled then
+		table.insert(package.loaders, 1, custom_loader)
+		vim.g.rokka_custom_loader_enabled = true
+	end
+end
+
 local function setup_delay_loader(self)
 	self.logger.debug("[Setup] delay loader.")
 	vim.defer_fn(function()
@@ -117,6 +139,7 @@ function loader.new(config)
 	local tbl = {
 		logger = config.logger,
 		opt_plugins = config.opt_plugins,
+		module_plugins = config.module_plugins,
 		event_plugins = config.event_plugins,
 		cmd_plugins = config.cmd_plugins,
 		ft_plugins = config.ft_plugins,
@@ -124,6 +147,7 @@ function loader.new(config)
 		delay_time = config.delay_time,
 	}
 	tbl.load_opt_plugin = load_opt_plugin
+	tbl.setup_module_loader = setup_module_loader
 	tbl.setup_event_loader = setup_event_loader
 	tbl.setup_cmd_loader = setup_cmd_loader
 	tbl.setup_ft_loader = setup_ft_loader
