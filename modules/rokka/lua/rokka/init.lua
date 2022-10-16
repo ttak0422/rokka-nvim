@@ -14,6 +14,7 @@ rokka.init = function(config)
 	local loader_config = {
 		logger = logger,
 		opt_plugins = config.opt_plugins,
+		module_plugins = config.loader_module_plugins,
 		event_plugins = config.loader_event_plugins,
 		cmd_plugins = config.loader_cmd_plugins,
 		ft_plugins = config.loader_ft_plugins,
@@ -22,6 +23,7 @@ rokka.init = function(config)
 	}
 	local loader = require("rokka.loader").new(loader_config)
 	loader:setup_delay_loader()
+	loader:setup_module_loader()
 	loader:setup_event_loader()
 	loader:setup_cmd_loader()
 	loader:setup_ft_loader()

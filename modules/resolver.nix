@@ -9,7 +9,8 @@ let
   inherit (lib.attrsets) attrValues mapAttrsToList;
   inherit (import ./util.nix lib) mergeElement expandWith;
   inherit (import ./types.nix { inherit lib; }) pluginUserConfigDefault;
-in rec {
+in
+rec {
   # Type: (package | pluginUserConfigType) -> pluginUserConfigType
   normalizePlugin = p:
     if p ? rokka then
@@ -32,11 +33,13 @@ in rec {
           p' = normalizePlugin p;
           depends' = normalizePlugins p'.depends;
           dependsAfter' = normalizePlugins p'.dependsAfter;
-        in p' // {
+        in
+        p' // {
           depends = depends';
           dependsAfter = dependsAfter';
         };
-    in map f ps;
+    in
+    map f ps;
 
   # Type: pluginUserConfigType -> pluginUserConfigType -> pluginUserConfigType
   mergePlugin = p1: p2:
@@ -48,38 +51,42 @@ in rec {
         plugin = if p1.plugin != null then p1.plugin else p2.plugin;
         pname = if p1.pname != null then p1.pname else p2.pname;
 
-      in p1 // {
+      in
+      p1 // {
         inherit plugin pname;
         enable = mergeElement p1.enable p2.enable pluginUserConfigDefault.enable
           "enable (${name})";
         optional =
           mergeElement p1.optional p2.optional pluginUserConfigDefault.optional
-          "optional (${name})";
+            "optional (${name})";
         startup =
           mergeElement p1.startup p2.startup pluginUserConfigDefault.startup
-          "startup (${name})";
+            "startup (${name})";
         config = mergeElement p1.config p2.config pluginUserConfigDefault.config
           "config (${name})";
         comment =
           mergeElement p1.comment p2.comment pluginUserConfigDefault.comment
-          "comment (${name})";
+            "comment (${name})";
         depends =
           mergeElement p1.depends p2.depends pluginUserConfigDefault.depends
-          "depends (${name})";
+            "depends (${name})";
         dependsAfter = mergeElement p1.dependsAfter p2.dependsAfter
           pluginUserConfigDefault.dependsAfter "dependsAfter (${name})";
+        modules =
+          mergeElement p1.modules p2.modules pluginUserConfigDefault.modules
+            "modules (${name})";
         events = mergeElement p1.events p2.events pluginUserConfigDefault.events
           "events (${name})";
         fileTypes = mergeElement p1.fileTypes p2.fileTypes
           pluginUserConfigDefault.fileTypes "fileTypes (${name})";
         commands =
           mergeElement p1.commands p2.commands pluginUserConfigDefault.commands
-          "commands (${name})";
+            "commands (${name})";
         delay = mergeElement p1.delay p2.delay pluginUserConfigDefault.delay
           "delay (${name})";
         optimize =
           mergeElement p1.optimize p2.optimize pluginUserConfigDefault.optimize
-          "optimize (${name})";
+            "optimize (${name})";
         extraPackages = mergeElement p1.extraPackages p2.extraPackages
           pluginUserConfigDefault.extraPackages "extraPackages (${name})";
       };
@@ -97,13 +104,14 @@ in rec {
         else
           [ p ] ++ (flattenPlugins p.dependsAfter)
           ++ (flattenPlugins p.depends);
-    in flatten (map f ps);
+    in
+    flatten (map f ps);
 
   # Type: pluginUserConfigType list -> pluginUserConfigType list
   aggregatePlugins = ps:
     attrValues
-    (groupBy' (acc: x: mergePlugin acc x) pluginUserConfigDefault (x: x.pname)
-      ps);
+      (groupBy' (acc: x: mergePlugin acc x) pluginUserConfigDefault (x: x.pname)
+        ps);
 
   # Type: pluginUserConfigType list -> obj
   resolvePlugins = ps:
@@ -114,25 +122,40 @@ in rec {
       allPlugins = aggregatePlugins flattenPs;
       allStartPlugins = filter (p: !p.optional) allPlugins;
       allOptPlugins = filter (p: p.optional) allPlugins;
-      allEventPlugins = let
-        ps = filter (p: p.events != [ ]) allOptPlugins;
-        f = expandWith (x: x.events) (x: ev: x // { event = ev; });
-      in groupBy' (acc: x: acc ++ [ x.pname ]) [ ] (x: x.event)
-      (flatten (map f ps));
-      allCmdPlugins = let
-        ps = filter (p: p.commands != [ ]) allOptPlugins;
-        f = expandWith (x: x.commands) (x: cmd: x // { command = cmd; });
-      in groupBy' (acc: x: acc ++ [ x.pname ]) [ ] (x: x.command)
-      (flatten (map f ps));
-      allFtPlugins = let
-        ps = filter (p: p.fileTypes != [ ]) allOptPlugins;
-        f = expandWith (x: x.fileTypes) (x: ft: x // { fileType = ft; });
-      in groupBy' (acc: x: acc ++ [ x.pname ]) [ ] (x: x.fileType)
-      (flatten (map f ps));
-    in {
+      allModulePlugins =
+        let
+          ps = filter (p: p.modules != [ ]) allOptPlugins;
+          f = expandWith (x: x.modules) (x: mod: x // { module = mod; });
+        in
+        groupBy' (acc: x: acc ++ [ x.pname ]) [ ] (x: x.module)
+          (flatten (map f ps));
+      allEventPlugins =
+        let
+          ps = filter (p: p.events != [ ]) allOptPlugins;
+          f = expandWith (x: x.events) (x: ev: x // { event = ev; });
+        in
+        groupBy' (acc: x: acc ++ [ x.pname ]) [ ] (x: x.event)
+          (flatten (map f ps));
+      allCmdPlugins =
+        let
+          ps = filter (p: p.commands != [ ]) allOptPlugins;
+          f = expandWith (x: x.commands) (x: cmd: x // { command = cmd; });
+        in
+        groupBy' (acc: x: acc ++ [ x.pname ]) [ ] (x: x.command)
+          (flatten (map f ps));
+      allFtPlugins =
+        let
+          ps = filter (p: p.fileTypes != [ ]) allOptPlugins;
+          f = expandWith (x: x.fileTypes) (x: ft: x // { fileType = ft; });
+        in
+        groupBy' (acc: x: acc ++ [ x.pname ]) [ ] (x: x.fileType)
+          (flatten (map f ps));
+    in
+    {
       plugins = allPlugins;
       startPlugins = allStartPlugins;
       optPlugins = allOptPlugins;
+      modulePlugins = allModulePlugins;
       eventPlugins = allEventPlugins;
       cmdPlugins = allCmdPlugins;
       ftPlugins = allFtPlugins;

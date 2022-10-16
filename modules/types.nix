@@ -1,7 +1,8 @@
 { lib, ... }:
 
 let inherit (lib) types mkOption mkEnableOption;
-in rec {
+in
+rec {
   pluginUserConfigDefault = {
     rokka = null;
     plugin = null;
@@ -13,6 +14,7 @@ in rec {
     comment = null;
     depends = [ ];
     dependsAfter = [ ];
+    modules = [ ];
     events = [ ];
     fileTypes = [ ];
     commands = [ ];
@@ -82,6 +84,14 @@ in rec {
         type = with types; listOf (either package pluginUserConfigType);
         description = "plugin dependencies. load after this plugin.";
         default = pluginUserConfigDefault.dependsAfter;
+      };
+
+      # module = ... configured by rokka
+
+      modules = mkOption {
+        type = with types; listOf str;
+        description = "modules load this plugin. (optional only)";
+        default = pluginUserConfigDefault.modules;
       };
 
       # event = ... configured by rokka
