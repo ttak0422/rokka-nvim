@@ -7,7 +7,8 @@ let
   inherit (lib.lists) foldl';
 
   concatC = concatStringsSep ",";
-in rec {
+in
+rec {
 
   # Type: uniqeWith :: (a -> b) -> [a] -> [a]
   uniqueWith = f:
@@ -22,7 +23,7 @@ in rec {
 
   # Type: a -> a -> a -> str -> a
   mergeElement = e1: e2: defaultValue: name:
-    if e1 != defaultValue && e2 != defaultValue then
+    if e1 != defaultValue && e2 != defaultValue && e1 != e2 then
       throw "Conflict `${name}` value!"
     else if e1 == e2 then
       e1
