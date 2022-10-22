@@ -53,7 +53,15 @@ let
         loaded = false,
         config = ${
           if p.config != null then
-            "function() dofile('${writeText p.pname p.config}') end"
+            ''
+              function()
+                local success, err_msg = pcall(dofile, '${writeText p.pname p.config}')
+                if not success then
+                  err_msg = err_msg or '-- no msg --'
+                  logger.warn('[${p.pname}] configure error: ' .. err_msg)
+                end
+              end
+            ''
           else
             "nil"
         },
@@ -78,7 +86,8 @@ let
     let ftPlugins = { };
     in
     writeText "rokka-init.lua" ''
-      local rokka = require 'rokka'
+      local rokka = require('rokka')
+      local logger = require('rokka.log')
       rokka.init({
         log_plugin = '${cfg.log_plugin}',
         log_level = '${cfg.log_level}',
