@@ -96,8 +96,16 @@ rec {
     let
       filter' = filter (p: p.enable);
       f = p:
-        [ p ] ++ (flattenPlugins (filter' p.dependsAfter))
-        ++ (flattenPlugins (filter' p.depends));
+        let
+          dependsAfter' = flattenPlugins (filter' p.dependsAfter);
+          depends' = flattenPlugins (filter' p.depends);
+        in
+        [
+          (p // {
+            depends = depends';
+            dependsAfter = dependsAfter';
+          })
+        ] ++ dependsAfter' ++ depends';
     in
     flatten (map f ps);
 
