@@ -11,6 +11,7 @@ let
   dummy-package = callPackage ./dummy-package { };
   dummy-plugin = callPackage ./dummy-plugin { };
   dummy2-plugin = callPackage ./dummy2-plugin { };
+  dummy3-plugin = callPackage ./dummy3-plugin { };
   resolver = callPackage ./../modules/resolver.nix { };
 
   normalized = {
@@ -35,6 +36,10 @@ let
   normalized2 = normalized // {
     plugin = dummy2-plugin;
     pname = "dummy2";
+  };
+  normalized3 = normalized // {
+    plugin = dummy3-plugin;
+    pname = "dummy3";
   };
 in
 nixt.mkSuites {
@@ -111,14 +116,51 @@ nixt.mkSuites {
     "flatten" = (resolver.flattenPlugins
       [ (normalized // { depends = [ normalized2 ]; }) ])
     == [ (normalized // { depends = [ normalized2 ]; }) normalized2 ];
-    "attr size" =
+    "flatten (disabled depends)" =
       let
-        ps = (resolver.flattenPlugins
-          [ (normalized // { depends = [ normalized2 ]; }) ]);
-        h = head ps;
-        l = last ps;
+        ps = (normalized // {
+          depends = [
+            (normalized2 // {
+              enable = false;
+              depends = [ normalized3 ];
+            })
+          ];
+        });
       in
-      (length (attrValues h)) == 17 && (length (attrValues l)) == 17;
+      (resolver.flattenPlugins [ ps ] == [ ps ]);
+    "flatten (disabled depends) 2" =
+      let
+        ps = (normalized // {
+          depends = [
+            (normalized2 // {
+              depends = [ (normalized3 // { enable = false; }) ];
+            })
+          ];
+        });
+      in
+      (resolver.flattenPlugins [ ps ] == [
+        ps
+        (normalized2 // { depends = [ (normalized3 // { enable = false; }) ]; })
+      ]);
+    "flatten (disabled dependsAfter)" =
+      let
+        ps = (normalized // {
+          dependsAfter = [ (normalized2 // { enable = false; }) ];
+        });
+      in
+      (resolver.flattenPlugins [ ps ]) == [ ps ];
+    "flatten (disabled dependsAfter) 2" =
+      let
+        ps = (normalized // {
+          dependsAfter = [
+            (normalized2 // {
+              enable = false;
+              dependsAfter = [ normalized3 ];
+            })
+          ];
+        });
+      in
+      (resolver.flattenPlugins [ ps ] == [ ps ]);
   };
 
   "aggregatePlugins" = {
@@ -192,29 +234,26 @@ nixt.mkSuites {
         "InsertEnter" = [ "dummy" ];
         "BufWinEnter" = [ "dummy" ];
       };
-      "opt" =
-        let x = 1;
-        in
-        resolveOpt == {
-          plugins = [ p1 p2 ];
-          startPlugins = [ ];
-          optPlugins = [ p1 p2 ];
-          modulePlugins = { "dummymod" = [ "dummy" ]; };
-          eventPlugins = {
-            "InsertEnter" = [ "dummy" ];
-            "BufWinEnter" = [ "dummy" ];
-          };
-          cmdPlugins = {
-            "Open" = [ "dummy" ];
-            "Close" = [ "dummy" ];
-          };
-          ftPlugins = {
-            "nix" = [ "dummy" ];
-            "lua" = [ "dummy" ];
-          };
-          delayPlugins = [ p1 ];
-          extraPackages = [ dummy-package ];
+      "opt" = resolveOpt == {
+        plugins = [ p1 p2 ];
+        startPlugins = [ ];
+        optPlugins = [ p1 p2 ];
+        modulePlugins = { "dummymod" = [ "dummy" ]; };
+        eventPlugins = {
+          "InsertEnter" = [ "dummy" ];
+          "BufWinEnter" = [ "dummy" ];
         };
+        cmdPlugins = {
+          "Open" = [ "dummy" ];
+          "Close" = [ "dummy" ];
+        };
+        ftPlugins = {
+          "nix" = [ "dummy" ];
+          "lua" = [ "dummy" ];
+        };
+        delayPlugins = [ p1 ];
+        extraPackages = [ dummy-package ];
+      };
       "disabled" = resolveDisabled == {
         plugins = [ ];
         startPlugins = [ ];
