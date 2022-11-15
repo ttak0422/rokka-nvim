@@ -94,16 +94,10 @@ rec {
   # Type: pluginUserConfigType list -> pluginUserConfigType
   flattenPlugins = ps:
     let
+      filter' = filter (p: p.enable);
       f = p:
-        if p.depends == [ ] && p.dependsAfter == [ ] then
-          [ p ]
-        else if p.depends == [ ] then
-          [ p ] ++ (flattenPlugins p.dependsAfter)
-        else if p.dependsAfter == [ ] then
-          [ p ] ++ (flattenPlugins p.depends)
-        else
-          [ p ] ++ (flattenPlugins p.dependsAfter)
-          ++ (flattenPlugins p.depends);
+        [ p ] ++ (flattenPlugins (filter' p.dependsAfter))
+        ++ (flattenPlugins (filter' p.depends));
     in
     flatten (map f ps);
 
