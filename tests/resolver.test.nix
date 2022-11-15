@@ -192,29 +192,26 @@ nixt.mkSuites {
         "InsertEnter" = [ "dummy" ];
         "BufWinEnter" = [ "dummy" ];
       };
-      "opt" =
-        let x = 1;
-        in
-        resolveOpt == {
-          plugins = [ p1 p2 ];
-          startPlugins = [ ];
-          optPlugins = [ p1 p2 ];
-          modulePlugins = { "dummymod" = [ "dummy" ]; };
-          eventPlugins = {
-            "InsertEnter" = [ "dummy" ];
-            "BufWinEnter" = [ "dummy" ];
-          };
-          cmdPlugins = {
-            "Open" = [ "dummy" ];
-            "Close" = [ "dummy" ];
-          };
-          ftPlugins = {
-            "nix" = [ "dummy" ];
-            "lua" = [ "dummy" ];
-          };
-          delayPlugins = [ p1 ];
-          extraPackages = [ dummy-package ];
+      "opt" = resolveOpt == {
+        plugins = [ p1 p2 ];
+        startPlugins = [ ];
+        optPlugins = [ p1 p2 ];
+        modulePlugins = { "dummymod" = [ "dummy" ]; };
+        eventPlugins = {
+          "InsertEnter" = [ "dummy" ];
+          "BufWinEnter" = [ "dummy" ];
         };
+        cmdPlugins = {
+          "Open" = [ "dummy" ];
+          "Close" = [ "dummy" ];
+        };
+        ftPlugins = {
+          "nix" = [ "dummy" ];
+          "lua" = [ "dummy" ];
+        };
+        delayPlugins = [ p1 ];
+        extraPackages = [ dummy-package ];
+      };
       "disabled" = resolveDisabled == {
         plugins = [ ];
         startPlugins = [ ];
