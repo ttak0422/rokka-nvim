@@ -116,51 +116,45 @@ nixt.mkSuites {
     "flatten" = (resolver.flattenPlugins
       [ (normalized // { depends = [ normalized2 ]; }) ])
     == [ (normalized // { depends = [ normalized2 ]; }) normalized2 ];
-    "flatten (disabled depends)" =
-      let
-        ps = (normalized // {
-          depends = [
-            (normalized2 // {
-              enable = false;
-              depends = [ normalized3 ];
-            })
-          ];
-        });
-      in
-      (resolver.flattenPlugins [ ps ] == [ ps ]);
+    "flatten (disabled depends)" = (resolver.flattenPlugins [
+      (normalized // {
+        depends = [
+          (normalized2 // {
+            enable = false;
+            depends = [ normalized3 ];
+          })
+        ];
+      })
+    ] == [
+      normalized
+
+    ]);
     "flatten (disabled depends) 2" =
-      let
-        ps = (normalized // {
+
+      (resolver.flattenPlugins [
+        (normalized // {
           depends = [
             (normalized2 // {
               depends = [ (normalized3 // { enable = false; }) ];
             })
           ];
-        });
-      in
-      (resolver.flattenPlugins [ ps ] == [
-        ps
-        (normalized2 // { depends = [ (normalized3 // { enable = false; }) ]; })
-      ]);
-    "flatten (disabled dependsAfter)" =
-      let
-        ps = (normalized // {
-          dependsAfter = [ (normalized2 // { enable = false; }) ];
-        });
-      in
-      (resolver.flattenPlugins [ ps ]) == [ ps ];
-    "flatten (disabled dependsAfter) 2" =
-      let
-        ps = (normalized // {
-          dependsAfter = [
-            (normalized2 // {
-              enable = false;
-              dependsAfter = [ normalized3 ];
-            })
-          ];
-        });
-      in
-      (resolver.flattenPlugins [ ps ] == [ ps ]);
+        })
+      ] == [ (normalized // { depends = [ normalized2 ]; }) normalized2 ]);
+    "flatten (disabled dependsAfter)" = (resolver.flattenPlugins [
+      (normalized // {
+        dependsAfter = [ (normalized2 // { enable = false; }) ];
+      })
+    ]) == [ normalized ];
+    "flatten (disabled dependsAfter) 2" = (resolver.flattenPlugins [
+      (normalized // {
+        dependsAfter = [
+          (normalized2 // {
+            enable = false;
+            dependsAfter = [ normalized3 ];
+          })
+        ];
+      })
+    ] == [ normalized ]);
   };
 
   "aggregatePlugins" = {
