@@ -11,6 +11,7 @@ let
   dummy-package = callPackage ./dummy-package { };
   dummy-plugin = callPackage ./dummy-plugin { };
   dummy2-plugin = callPackage ./dummy2-plugin { };
+  dummy3-plugin = callPackage ./dummy3-plugin { };
   resolver = callPackage ./../modules/resolver.nix { };
 
   normalized = {
@@ -35,6 +36,10 @@ let
   normalized2 = normalized // {
     plugin = dummy2-plugin;
     pname = "dummy2";
+  };
+  normalized3 = normalized // {
+    plugin = dummy3-plugin;
+    pname = "dummy3";
   };
 in
 nixt.mkSuites {
