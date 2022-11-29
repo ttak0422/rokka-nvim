@@ -91,6 +91,10 @@ let
     }}";
 
   # Type: obj -> package
+  makeExtraConfigLuaFile = cfgText:
+    writeText "rokka-extraconfig.lua" cfgText;
+
+  # Type: obj -> package
   makePluginsConfigFile = cfg:
     let
       initParams = [
@@ -125,6 +129,11 @@ in
 rec {
   # Type: pluginUserConfigType list (rokka.nvim) -> pluginWithConfigType list (home-manager)
   mappingPlugins = ps: map mappingPlugin ps;
+
+  # Type: str -> package
+  makeExtraConfigLua = cfg: ''
+    lua dofile('${makeExtraConfigLuaFile cfg}')
+  '';
 
   # Type: obj -> package
   makePluginsConfig = cfg: ''
