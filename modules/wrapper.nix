@@ -1,7 +1,7 @@
 { pkgs, lib, ... }:
 
 let
-  inherit (builtins) map;
+  inherit (builtins) map length;
   inherit (pkgs) writeText;
   inherit (lib) concatStringsSep filter;
   inherit (lib.attrsets) mapAttrsToList;
@@ -56,15 +56,28 @@ let
   # Type: pluginUserConfigType -> str
   makeOptPluginConfig = p:
     let
-      depends = "{${concatC (map (p': "'${p'.pname}'") p.depends)}}";
-      dependsAfter = "{${concatC (map (p': "'${p'.pname}'") p.dependsAfter)}}";
+      depends =
+        if length (p.depends) > 0 then
+          "opt_depends={${concatC (map (p': "'${p'.pname}'") p.depends)}},"
+        else
+          "";
+      dependsAfter =
+        if length (p.dependsAfter) > 0 then
+          "opt_depends_after={${
+          concatC (map (p': "'${p'.pname}'") p.dependsAfter)
+        }},"
+        else
+          "";
       cfg =
         if p.config != null then
-          "function()docfg('${p.pname}','${writeText p.pname p.config}')end"
+          "config=function()docfg('${p.pname}','${
+          writeText p.pname p.config
+        }')end,"
         else
-          "nil";
+          "";
+      # { loaded: bool, config: str, opt_depends: listOf str, opt_depends_after: listOf str }
     in
-    "['${p.pname}'] = {loaded = false,config = ${cfg},opt_depends = ${depends},opt_depends_after = ${dependsAfter},}";
+    "['${p.pname}']={${cfg}${depends}${dependsAfter}}";
 
   # Type: pluginUserConfigType list -> str
   makeOptPluginsConfig = ps: "{${concatC (map makeOptPluginConfig ps)}}";
@@ -79,31 +92,29 @@ let
 
   # Type: obj -> package
   makePluginsConfigFile = cfg:
-    let ftPlugins = { };
+    let
+      initParams = [
+        "log_plugin='${cfg.log_plugin}'"
+        "log_level='${cfg.log_level}'"
+        "loader_delay_time=${toString cfg.loader_delay_time}"
+        "opt_plugins=${makeOptPluginsConfig cfg.optPlugins}"
+        "loader_module_plugins=${makeKvpConfig cfg.modulePlugins}"
+        "loader_event_plugins=${makeKvpConfig cfg.eventPlugins}"
+        "loader_cmd_plugins=${makeKvpConfig cfg.cmdPlugins}"
+        "loader_ft_plugins=${makeKvpConfig cfg.ftPlugins}"
+        "loader_delay_plugins=${makeListConfig cfg.delayPlugins}"
+      ];
+      initParams' = concatC initParams;
     in
     writeText "rokka-init.lua" ''
       local rokka = require('rokka')
       local logger = require('rokka.log')
-
       ${doConfigure}
-
-      rokka.init({
-        log_plugin = '${cfg.log_plugin}',
-        log_level = '${cfg.log_level}',
-        loader_delay_time = ${toString cfg.loader_delay_time},
-        opt_plugins = ${makeOptPluginsConfig cfg.optPlugins},
-        loader_module_plugins = ${makeKvpConfig cfg.modulePlugins},
-        loader_event_plugins = ${makeKvpConfig cfg.eventPlugins},
-        loader_cmd_plugins = ${makeKvpConfig cfg.cmdPlugins},
-        loader_ft_plugins = ${makeKvpConfig cfg.ftPlugins},
-        loader_delay_plugins = ${makeListConfig cfg.delayPlugins},
-      })
-
+      rokka.init({${initParams'}})
       -------------
       -- startup --
       -------------
       ${makeStartupConfig cfg.plugins}
-
       ------------------
       -- start/config --
       ------------------

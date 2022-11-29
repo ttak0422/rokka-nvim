@@ -20,7 +20,7 @@ local function load_opt_plugin(self, plugin_name, chain)
 	self.logger.debug("[Start] load ", plugin_name)
 
 	-- resolve dependencies.
-	for _, v in ipairs(plugin.opt_depends) do
+	for _, v in ipairs(plugin.opt_depends or {}) do
 		if not chain[v] then
 			self:load_opt_plugin(v, chain)
 		end
@@ -28,7 +28,7 @@ local function load_opt_plugin(self, plugin_name, chain)
 
 	vim.cmd("packadd " .. plugin_name)
 
-	for _, v in ipairs(plugin.opt_depends_after) do
+	for _, v in ipairs(plugin.opt_depends_after or {}) do
 		if not chain[v] then
 			self:load_opt_plugin(v, chain)
 		end
