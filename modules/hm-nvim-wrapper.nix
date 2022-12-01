@@ -10,7 +10,7 @@ let
   inherit (import ./resolver.nix { inherit pkgs lib; })
     normalizePlugin resolvePlugins;
   inherit (import ./wrapper.nix { inherit pkgs lib; })
-    mappingPlugins makePluginsConfig;
+    mappingPlugins makeExtraConfigLua makePluginsConfig;
 
   rokkaNvim = (normalizePlugin (callPackage ./rokka { })) // {
     optional = false;
@@ -23,7 +23,8 @@ let
     log_level = cfg.logLevel;
     loader_delay_time = cfg.loaderDelayTime;
   } // plugins;
-in {
+in
+{
   options.programs.rokka-nvim = {
     enable = mkEnableOption "rokka-nvim";
 
@@ -51,6 +52,15 @@ in {
       description = "neovim configs in viml";
       example = literalExample ''
         set number
+      '';
+    };
+
+    extraConfigLua = mkOption {
+      type = types.lines;
+      default = "";
+      description = "neovim configs in lua";
+      example = literalExample ''
+        vim.wo.number=true
       '';
     };
 
@@ -92,6 +102,7 @@ in {
         ${cfg.extraConfig}
 
         " rokka-nvim
+        ${makeExtraConfigLua cfg.extraConfigLua}
         ${makePluginsConfig rokkaConfig}
       '';
       withNodeJs = cfg.withNodeJs;
