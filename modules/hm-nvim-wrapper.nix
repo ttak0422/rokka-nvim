@@ -10,12 +10,11 @@ let
   inherit (import ./resolver.nix { inherit pkgs lib; })
     normalizePlugin resolvePlugins;
   inherit (import ./wrapper.nix { inherit pkgs lib; })
-    mappingPlugins makeExtraConfigLua makePluginsConfig;
+    mappingPlugins makeExtraConfigLua makePluginsConfigLua;
 
   rokkaNvim = (normalizePlugin (callPackage ./rokka { })) // {
     optional = false;
   };
-
   cfg = config.programs.rokka-nvim;
   plugins = resolvePlugins ([ rokkaNvim ] ++ cfg.plugins);
   rokkaConfig = {
@@ -23,6 +22,24 @@ let
     log_level = cfg.logLevel;
     loader_delay_time = cfg.loaderDelayTime;
   } // plugins;
+  initConfig =
+    if cfg.compileInitFile then ''
+      dofile('${
+        (callPackage ./rokka-init {
+          initConfig = ''
+            -- extraconfig lua
+            ${cfg.extraConfigLua}
+            -- rokka config
+            ${makePluginsConfigLua rokkaConfig}
+          '';
+        })
+      }')
+    '' else ''
+      -- extraconfig lua
+      ${cfg.extraConfigLua}
+      -- rokka config
+      ${makePluginsConfigLua rokkaConfig}
+    '';
 in
 {
   options.programs.rokka-nvim = {
@@ -53,6 +70,10 @@ in
       example = literalExample ''
         set number
       '';
+    };
+
+    compileInitFile = mkEnableOption "compileInitFile" // {
+      description = "compile init lua file.";
     };
 
     extraConfigLua = mkOption {
@@ -100,15 +121,14 @@ in
       plugins = mappingPlugins rokkaConfig.plugins;
       extraConfig = mkBefore ''
         ${cfg.extraConfig}
-
-        " rokka-nvim
-        ${makeExtraConfigLua cfg.extraConfigLua}
-        ${makePluginsConfig rokkaConfig}
       '';
       withNodeJs = cfg.withNodeJs;
       withPython3 = cfg.withPython3;
       withRuby = cfg.withRuby;
       extraPackages = cfg.extraPackages ++ rokkaConfig.extraPackages;
     };
+    xdg.configFile."nvim/init.lua".text = lib.mkAfter ''
+      ${initConfig}
+    '';
   };
 }
