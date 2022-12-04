@@ -3,8 +3,7 @@
 let
   inherit (builtins) map length;
   inherit (pkgs) writeText;
-  inherit (lib) concatStringsSep filter;
-  inherit (lib.attrsets) mapAttrsToList;
+  inherit (lib) concatStringsSep filter;inherit (lib.attrsets) mapAttrsToList;
   inherit (import ./util.nix lib) toLuaTableWith toLuaTable;
   concatC = concatStringsSep ",";
   concatN = concatStringsSep "\n";
@@ -91,11 +90,10 @@ let
     }}";
 
   # Type: obj -> package
-  makeExtraConfigLuaFile = cfgText:
-    writeText "rokka-extraconfig.lua" cfgText;
+  makeExtraConfigLuaFile = cfgText: writeText "rokka-extraconfig.lua" cfgText;
 
-  # Type: obj -> package
-  makePluginsConfigFile = cfg:
+  # Type: obj -> str
+  makePluginsConfigLua = cfg:
     let
       initParams = [
         "log_plugin='${cfg.log_plugin}'"
@@ -110,7 +108,7 @@ let
       ];
       initParams' = concatC initParams;
     in
-    writeText "rokka-init.lua" ''
+    ''
       local rokka = require('rokka')
       local logger = require('rokka.log')
       ${doConfigure}
@@ -125,8 +123,14 @@ let
       ${makeStartPluginsConfig cfg.startPlugins}
     '';
 
+  # Type: obj -> package
+  makePluginsConfigLuaFile = cfg:
+    writeText "rokka-init.lua" (makePluginsConfigLua cfg);
+
 in
 rec {
+  inherit makePluginsConfigLua;
+
   # Type: pluginUserConfigType list (rokka.nvim) -> pluginWithConfigType list (home-manager)
   mappingPlugins = ps: map mappingPlugin ps;
 
@@ -136,8 +140,8 @@ rec {
   '';
 
   # Type: obj -> package
-  makePluginsConfig = cfg: ''
-    lua dofile('${makePluginsConfigFile cfg}')
+  makePluginsConfigViml = cfg: ''
+    lua dofile('${makePluginsConfigLuaFile cfg}')
   '';
 
 }
