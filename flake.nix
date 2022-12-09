@@ -15,30 +15,32 @@
       url = "github:cachix/pre-commit-hooks.nix";
       inputs = { flake-utils.follows = "flake-utils"; };
     };
+    nix-filter.url = "github:numtide/nix-filter";
   };
 
-  outputs = { self, nixpkgs, flake-utils, pre-commit-hooks, ... }@inputs:
+  outputs =
+    { self, nixpkgs, flake-utils, pre-commit-hooks, nix-filter, ... }@inputs:
     {
-      hmModule = import ./modules/hm-nvim-wrapper.nix inputs;
-    }
-    // flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = import nixpkgs { inherit system; };
-        nixt = inputs.nixt.packages.${system}.nixt;
-      in
-      {
-        checks = {
-          pre-commit-check = pre-commit-hooks.lib.${system}.run {
-            src = ./.;
-            hooks = {
-              nixpkgs-fmt.enable = true;
-              stylua.enable = true;
-            };
+      hmModule = import ./modules/hm-nvim-wrapper.nix
+        (inputs // { nix-filter = nix-filter.lib; });
+    } // flake-utils.lib.eachDefaultSystem (system:
+    let
+      pkgs = import nixpkgs { inherit system; };
+      nixt = inputs.nixt.packages.${system}.nixt;
+    in
+    {
+      checks = {
+        pre-commit-check = pre-commit-hooks.lib.${system}.run {
+          src = ./.;
+          hooks = {
+            nixpkgs-fmt.enable = true;
+            stylua.enable = true;
           };
         };
-        devShell = pkgs.mkShell {
-          buildInputs = with pkgs; [ nixt ];
-          inherit (self.checks.${system}.pre-commit-check) shellHook;
-        };
-      });
+      };
+      devShell = pkgs.mkShell {
+        buildInputs = with pkgs; [ nixt ];
+        inherit (self.checks.${system}.pre-commit-check) shellHook;
+      };
+    });
 }

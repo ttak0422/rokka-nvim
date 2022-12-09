@@ -1,9 +1,10 @@
-{ pkgs, lib, ... }:
+{ pkgs, lib, nix-filter, ... }:
 
 let
   inherit (builtins) map length;
   inherit (pkgs) writeText;
-  inherit (lib) concatStringsSep filter;inherit (lib.attrsets) mapAttrsToList;
+  inherit (lib) concatStringsSep filter;
+  inherit (lib.attrsets) mapAttrsToList;
   inherit (import ./util.nix lib) toLuaTableWith toLuaTable;
   concatC = concatStringsSep ",";
   concatN = concatStringsSep "\n";
@@ -16,6 +17,27 @@ let
   #   some options are missing and have to configure elsewhere.
   mappingPlugin = p: {
     plugin = p.plugin;
+    optional = p.optional;
+  };
+
+  # Type:
+  #   opt -> pluginUserConfigType (rokka.nvim) -> pluginWithConfigType (home-manager)
+  # Doc:
+  #   mapping plugin's config with optimize.
+  # Note:
+  #   some options are missing and have to configure elsewhere.
+  mappingPluginWithOptimize = opt: p: {
+    plugin =
+      if p.optimize then
+        p.plugin.overrideAttrs
+          (old: {
+            src = nix-filter {
+              root = p.plugin.src;
+              exclude = opt.excludePaths;
+            };
+          })
+      else
+        p.plugin;
     optional = p.optional;
   };
 
@@ -133,6 +155,10 @@ rec {
 
   # Type: pluginUserConfigType list (rokka.nvim) -> pluginWithConfigType list (home-manager)
   mappingPlugins = ps: map mappingPlugin ps;
+
+  # Type: opt -> pluginUserConfigType list (rokka.nvim) -> pluginWithConfigType list (home-manager)
+  mappingPluginsWithOptimize = opt: ps:
+    map (p: mappingPluginWithOptimize opt p) ps;
 
   # Type: str -> str
   makeExtraConfigLua = cfg: ''
