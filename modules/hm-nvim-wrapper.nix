@@ -9,8 +9,8 @@ let
   inherit (import ./types.nix { inherit lib; }) pluginUserConfigType;
   inherit (import ./resolver.nix { inherit pkgs lib; })
     normalizePlugin resolvePlugins;
-  inherit (import ./wrapper.nix { inherit pkgs lib; })
-    mappingPlugins makeExtraConfigLua makePluginsConfigLua;
+  inherit (import ./wrapper.nix { inherit pkgs lib; nix-filter = inputs.nix-filter; })
+    mappingPluginsWithOptimize makeExtraConfigLua makePluginsConfigLua;
 
   rokkaNvim = (normalizePlugin (callPackage ./rokka { })) // {
     optional = false;
@@ -91,6 +91,22 @@ in
       default = [ ];
     };
 
+    excludePaths = mkOption {
+      type = with types; listOf str;
+      default = [
+        "LICENSE"
+        "README"
+        "README.md"
+        "t"
+        "test"
+        "tests"
+        "Makefile"
+        ".gitignore"
+        ".git"
+        ".github"
+      ];
+    };
+
     plugins = mkOption {
       type = with types; listOf (either package pluginUserConfigType);
       description = "neovim plugins";
@@ -118,7 +134,8 @@ in
     programs.neovim = {
       enable = true;
       package = cfg.package;
-      plugins = mappingPlugins rokkaConfig.plugins;
+      plugins = mappingPluginsWithOptimize { excludePaths = cfg.excludePaths; }
+        rokkaConfig.plugins;
       extraConfig = mkBefore ''
         ${cfg.extraConfig}
       '';
