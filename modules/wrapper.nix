@@ -134,12 +134,12 @@ rec {
   # Type: pluginUserConfigType list (rokka.nvim) -> pluginWithConfigType list (home-manager)
   mappingPlugins = ps: map mappingPlugin ps;
 
-  # Type: str -> package
+  # Type: str -> str
   makeExtraConfigLua = cfg: ''
     lua dofile('${makeExtraConfigLuaFile cfg}')
   '';
 
-  # Type: obj -> package
+  # Type: obj -> str
   makePluginsConfigViml = cfg: ''
     lua dofile('${makePluginsConfigLuaFile cfg}')
   '';
