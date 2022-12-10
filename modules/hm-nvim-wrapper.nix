@@ -3,14 +3,17 @@
 { options, config, pkgs, lib, ... }:
 let
   inherit (builtins) map toString length;
-  inherit (pkgs) callPackage;
+  inherit (pkgs) callPackage writeText;
   inherit (lib)
     types mkIf mkOption mkEnableOption mkAfter mkBefore literalExample;
   inherit (import ./types.nix { inherit lib; }) pluginUserConfigType;
   inherit (import ./resolver.nix { inherit pkgs lib; })
     normalizePlugin resolvePlugins;
-  inherit (import ./wrapper.nix { inherit pkgs lib; nix-filter = inputs.nix-filter; })
-    mappingPluginsWithOptimize makeExtraConfigLua makePluginsConfigLua;
+  inherit (import ./wrapper.nix {
+    inherit pkgs lib;
+    nix-filter = inputs.nix-filter;
+  })
+    mappingPluginsWithOptimize makePluginsConfigLua makePluginsConfigLuaFile;
 
   rokkaNvim = (normalizePlugin (callPackage ./rokka { })) // {
     optional = false;
@@ -24,12 +27,12 @@ let
   } // plugins;
   initConfig =
     if cfg.compileInitFile then ''
+      -- ${writeText "config.lua" cfg.extraConfigLua}
+      -- ${makePluginsConfigLuaFile rokkaConfig}}
       dofile('${
         (callPackage ./rokka-init {
           initConfig = ''
-            -- extraconfig lua
             ${cfg.extraConfigLua}
-            -- rokka config
             ${makePluginsConfigLua rokkaConfig}
           '';
         })

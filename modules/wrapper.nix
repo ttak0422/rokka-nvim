@@ -151,7 +151,7 @@ let
 
 in
 rec {
-  inherit makePluginsConfigLua;
+  inherit makePluginsConfigLua makePluginsConfigLuaFile;
 
   # Type: pluginUserConfigType list (rokka.nvim) -> pluginWithConfigType list (home-manager)
   mappingPlugins = ps: map mappingPlugin ps;
@@ -159,15 +159,4 @@ rec {
   # Type: opt -> pluginUserConfigType list (rokka.nvim) -> pluginWithConfigType list (home-manager)
   mappingPluginsWithOptimize = opt: ps:
     map (p: mappingPluginWithOptimize opt p) ps;
-
-  # Type: str -> str
-  makeExtraConfigLua = cfg: ''
-    lua dofile('${makeExtraConfigLuaFile cfg}')
-  '';
-
-  # Type: obj -> str
-  makePluginsConfigViml = cfg: ''
-    lua dofile('${makePluginsConfigLuaFile cfg}')
-  '';
-
 }
