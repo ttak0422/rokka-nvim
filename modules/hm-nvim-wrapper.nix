@@ -10,7 +10,7 @@ let
   inherit (import ./resolver.nix { inherit pkgs lib; })
     normalizePlugin resolvePlugins;
   inherit (import ./wrapper.nix { inherit pkgs lib; nix-filter = inputs.nix-filter; })
-    mappingPluginsWithOptimize makeExtraConfigLua makePluginsConfigLua;
+    mappingPluginsWithOptimize makePluginsConfigLua;
 
   rokkaNvim = (normalizePlugin (callPackage ./rokka { })) // {
     optional = false;
