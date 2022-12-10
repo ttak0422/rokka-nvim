@@ -151,7 +151,7 @@ let
 
 in
 rec {
-  inherit makePluginsConfigLua;
+  inherit makePluginsConfigLua makePluginsConfigLuaFile;
 
   # Type: pluginUserConfigType list (rokka.nvim) -> pluginWithConfigType list (home-manager)
   mappingPlugins = ps: map mappingPlugin ps;
