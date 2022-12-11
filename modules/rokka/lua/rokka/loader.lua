@@ -2,6 +2,15 @@ local loader = {}
 
 local group_name = "rokka_loader"
 
+local function do_config(self, plugin_name)
+	-- file exists are garanteed by nix.
+	local ok, err_msg = pcall(dofile, self.plugins_config_root .. plugin_name)
+	if not ok then
+		err_msg = err_msg or "-- no msg --"
+		self.logger.warn("[" .. plugin_name .. "] configure error: " .. err_msg)
+	end
+end
+
 local function load_opt_plugin(self, plugin_name, chain)
 	local plugin = self.opt_plugins[plugin_name]
 	chain = chain or {}
@@ -34,10 +43,7 @@ local function load_opt_plugin(self, plugin_name, chain)
 		end
 	end
 
-	-- apply config.
-	if plugin.config then
-		plugin.config()
-	end
+	self:do_config(plugin_name)
 
 	-- update status.
 	plugin.loaded = true
@@ -139,6 +145,7 @@ function loader.new(config)
 	local tbl = {
 		logger = config.logger,
 		opt_plugins = config.opt_plugins,
+		plugins_config_root = config.plugins_config_root,
 		module_plugins = config.module_plugins,
 		event_plugins = config.event_plugins,
 		cmd_plugins = config.cmd_plugins,
@@ -147,6 +154,7 @@ function loader.new(config)
 		delay_time = config.delay_time,
 	}
 	tbl.load_opt_plugin = load_opt_plugin
+	tbl.do_config = do_config
 	tbl.setup_module_loader = setup_module_loader
 	tbl.setup_event_loader = setup_event_loader
 	tbl.setup_cmd_loader = setup_cmd_loader

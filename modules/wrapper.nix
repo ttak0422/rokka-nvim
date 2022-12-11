@@ -2,7 +2,7 @@
 
 let
   inherit (builtins) map length;
-  inherit (pkgs) writeText;
+  inherit (pkgs) callPackage writeText;
   inherit (lib) concatStringsSep filter;
   inherit (lib.attrsets) mapAttrsToList;
   inherit (import ./util.nix lib) toLuaTableWith toLuaTable;
@@ -41,17 +41,6 @@ let
     optional = p.optional;
   };
 
-  # Type: str
-  doConfigure = ''
-    local function docfg(pname, cfg_file_path)
-      local success, err_msg = pcall(dofile, cfg_file_path)
-      if not success then
-        err_msg = err_msg or '-- no msg --'
-        logger.warn('[' .. pname .. '] configure error: ' .. err_msg)
-      end
-    end
-  '';
-
   # Type: pluginUserConfigType list -> str
   makeStartupConfig = ps:
     let targets = filter (p: p.startup != null) ps;
@@ -89,19 +78,18 @@ let
         }},"
         else
           "";
-      cfg =
-        if p.config != null then
-          "config=function()docfg('${p.pname}','${
-          writeText p.pname p.config
-        }')end,"
-        else
-          "";
-      # { loaded: bool, config: str, opt_depends: listOf str, opt_depends_after: listOf str }
     in
-    "['${p.pname}']={${cfg}${depends}${dependsAfter}}";
+    "['${p.pname}']={${depends}${dependsAfter}}";
 
   # Type: pluginUserConfigType list -> str
   makeOptPluginsConfig = ps: "{${concatC (map makeOptPluginConfig ps)}}";
+
+  # Type: pluginUserConfigType list -> package
+  makeOptPluginsConfigFiles = ps:
+    callPackage ./rokka-plugins-config {
+      # configFiles = map (p: writeText p.pname p.config) ps;
+      pluginsConfigs = ps;
+    };
 
   # Type: pluginUserConfigType list -> str
   makeListConfig = ps: toLuaTableWith (p: "'${p.pname}'") ps;
@@ -122,6 +110,7 @@ let
         "log_level='${cfg.log_level}'"
         "loader_delay_time=${toString cfg.loader_delay_time}"
         "opt_plugins=${makeOptPluginsConfig cfg.optPlugins}"
+        "plugins_config_root='${makeOptPluginsConfigFiles cfg.optPlugins}/'"
         "loader_module_plugins=${makeKvpConfig cfg.modulePlugins}"
         "loader_event_plugins=${makeKvpConfig cfg.eventPlugins}"
         "loader_cmd_plugins=${makeKvpConfig cfg.cmdPlugins}"
@@ -133,7 +122,6 @@ let
     ''
       local rokka = require('rokka')
       local logger = require('rokka.log')
-      ${doConfigure}
       rokka.init({${initParams'}})
       -------------
       -- startup --

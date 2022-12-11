@@ -14,6 +14,7 @@ rokka.init = function(config)
 	local loader_config = {
 		logger = logger,
 		opt_plugins = config.opt_plugins,
+		plugins_config_root = config.plugins_config_root,
 		module_plugins = config.loader_module_plugins,
 		event_plugins = config.loader_event_plugins,
 		cmd_plugins = config.loader_cmd_plugins,
