@@ -10,7 +10,7 @@ rec {
     optional = true;
     pname = null;
     startup = null;
-    config = null;
+    config = "";
     comment = null;
     depends = [ ];
     dependsAfter = [ ];
@@ -63,7 +63,7 @@ rec {
       };
 
       config = mkOption {
-        type = with types; nullOr lines;
+        type = with types; lines;
         description = "configured at plugin loaded";
         default = pluginUserConfigDefault.config;
       };
