@@ -28,7 +28,7 @@ let
   initConfig =
     if cfg.compileInitFile then ''
       -- ${writeText "config.lua" cfg.extraConfigLua}
-      -- ${makePluginsConfigLuaFile rokkaConfig}}
+      -- ${makePluginsConfigLuaFile rokkaConfig}
       dofile('${
         (callPackage ./rokka-init {
           initConfig = ''
