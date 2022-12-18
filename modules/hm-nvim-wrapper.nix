@@ -15,7 +15,9 @@ let
   })
     mappingPluginsWithOptimize makePluginsConfigLua makePluginsConfigLuaFile;
   inherit (import ./generator.nix { inherit pkgs lib; })
-    generateDelayLoadPluginsConfigFile;
+    generateDelayLoadPluginsConfigFile generatePluginDependsFile
+    generateEventsFile generateEventPluginsConfigFile generateFtsFile
+    generateFtPluginsConfigFile generateCmdsFile generateCmdPluginsConfigFile;
 
   cfg = config.programs.rokka-nvim;
   plugins = resolvePlugins ([ rokkaNvim ] ++ cfg.plugins);
@@ -25,7 +27,15 @@ let
     loader_delay_time = cfg.loaderDelayTime;
   } // plugins;
   rokkaNvim = (normalizePlugin (callPackage ./rokka {
-    loadDelayPluginsFile = generateDelayLoadPluginsConfigFile rokkaConfig.delayPlugins;
+    pluginDependsFile = generatePluginDependsFile rokkaConfig.optPlugins;
+    loadDelayPluginsFile =
+      generateDelayLoadPluginsConfigFile rokkaConfig.delayPlugins;
+    eventsFile = generateEventsFile rokkaConfig.eventPlugins;
+    eventPluginsFiles = generateEventPluginsConfigFile rokkaConfig.eventPlugins;
+    ftsFile = generateFtsFile rokkaConfig.ftPlugins;
+    ftPluginsFile = generateFtPluginsConfigFile rokkaConfig.ftPlugins;
+    cmdsFile = generateCmdsFile rokkaConfig.cmdPlugins;
+    cmdPluginsFile = generateCmdPluginsConfigFile rokkaConfig.cmdPlugins;
   })) // {
     optional = false;
   };

@@ -12,7 +12,7 @@ local function do_config(self, plugin_name)
 end
 
 local function load_opt_plugin(self, plugin_name, chain)
-	local plugin = self.opt_plugins[plugin_name]
+	local plugin = require("rokka.gen.depends")[plugin_name]
 	chain = chain or {}
 	chain[plugin_name] = true
 
@@ -84,7 +84,8 @@ end
 
 local function setup_event_loader(self)
 	self.logger.debug("[Setup] event loader.")
-	for e, ps in pairs(self.event_plugins) do
+	-- for e, ps in pairs(self.event_plugins) do
+	for _, e in ipairs(require("rokka.gen.events")) do
 		self.logger.debug("[Setup] event.", e)
 		vim.api.nvim_create_autocmd({ e }, {
 			group = self.group_name,
@@ -92,7 +93,7 @@ local function setup_event_loader(self)
 			once = true,
 			callback = function()
 				self.logger.debug("[Start] load plugin (event).", e)
-				for _, p in ipairs(ps) do
+				for _, p in ipairs(require("rokka.gen.event." .. e)) do
 					self:load_opt_plugin(p)
 				end
 				self.logger.debug("[End] load plugin (event).", e)
@@ -103,7 +104,7 @@ end
 
 local function setup_cmd_loader(self)
 	self.logger.debug("[Setup] cmd loader.")
-	for cmd, plugins in pairs(self.cmd_plugins) do
+	for _, cmd in ipairs(require("rokka.gen.cmds")) do
 		self.logger.debug("[Setup] cmd.", cmd)
 		vim.api.nvim_create_autocmd({ "CmdUndefined" }, {
 			group = self.group_name,
@@ -111,7 +112,7 @@ local function setup_cmd_loader(self)
 			once = true,
 			callback = function()
 				self.logger.debug("[Start] load plugin (cmd).", cmd)
-				for _, plugin in ipairs(plugins) do
+				for _, plugin in ipairs(require("rokka.gen.cmd." .. cmd)) do
 					self:load_opt_plugin(plugin)
 				end
 				self.logger.debug("[End] load plugin (cmd).", cmd)
@@ -122,7 +123,7 @@ end
 
 local function setup_ft_loader(self)
 	self.logger.debug("[Setup] ft loader.")
-	for ft, plugins in pairs(self.ft_plugins) do
+	for _, ft in ipairs(require("rokka.gen.fts")) do
 		self.logger.debug("[Setup] ft.", ft)
 		vim.api.nvim_create_autocmd({ "FileType" }, {
 			group = self.group_name,
@@ -130,7 +131,7 @@ local function setup_ft_loader(self)
 			once = true,
 			callback = function()
 				self.logger.debug("[Start] load plugin (ft).", ft)
-				for _, plugin in ipairs(plugins) do
+				for _, plugin in ipairs(require("rokka.gen.ft." .. ft)) do
 					self:load_opt_plugin(plugin)
 				end
 				self.logger.debug("[End] load plugin (ft).", ft)

@@ -109,12 +109,11 @@ let
         "log_plugin='${cfg.log_plugin}'"
         "log_level='${cfg.log_level}'"
         "loader_delay_time=${toString cfg.loader_delay_time}"
-        "opt_plugins=${makeOptPluginsConfig cfg.optPlugins}"
         "plugins_config_root='${makeOptPluginsConfigFiles cfg.optPlugins}/'"
         "loader_module_plugins=${makeKvpConfig cfg.modulePlugins}"
-        "loader_event_plugins=${makeKvpConfig cfg.eventPlugins}"
-        "loader_cmd_plugins=${makeKvpConfig cfg.cmdPlugins}"
-        "loader_ft_plugins=${makeKvpConfig cfg.ftPlugins}"
+        # "loader_event_plugins=${makeKvpConfig cfg.eventPlugins}"
+        # "loader_cmd_plugins=${makeKvpConfig cfg.cmdPlugins}"
+        # "loader_ft_plugins=${makeKvpConfig cfg.ftPlugins}"
       ];
       initParams' = concatC initParams;
     in
