@@ -75,7 +75,7 @@ local function setup_delay_loader(self)
 	self.logger.debug("[Setup] delay loader.")
 	vim.defer_fn(function()
 		self.logger.debug("[Start] load plugin (delay).")
-		for _, plugin in ipairs(self.delay_plugins) do
+		for _, plugin in ipairs(require("rokka.gen.delay")) do
 			self:load_opt_plugin(plugin)
 		end
 		self.logger.debug("[End] load plugin (delay).")

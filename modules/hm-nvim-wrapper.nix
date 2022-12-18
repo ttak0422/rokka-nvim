@@ -14,10 +14,9 @@ let
     nix-filter = inputs.nix-filter;
   })
     mappingPluginsWithOptimize makePluginsConfigLua makePluginsConfigLuaFile;
+  inherit (import ./generator.nix { inherit pkgs lib; })
+    generateDelayLoadPluginsConfigFile;
 
-  rokkaNvim = (normalizePlugin (callPackage ./rokka { })) // {
-    optional = false;
-  };
   cfg = config.programs.rokka-nvim;
   plugins = resolvePlugins ([ rokkaNvim ] ++ cfg.plugins);
   rokkaConfig = {
@@ -25,8 +24,15 @@ let
     log_level = cfg.logLevel;
     loader_delay_time = cfg.loaderDelayTime;
   } // plugins;
+  rokkaNvim = (normalizePlugin (callPackage ./rokka {
+    loadDelayPluginsFile = generateDelayLoadPluginsConfigFile rokkaConfig.delayPlugins;
+  })) // {
+    optional = false;
+  };
+
   initConfig =
     if cfg.compileInitFile then ''
+      -- rokka (${rokkaNvim.plugin})
       -- ${writeText "config.lua" cfg.extraConfigLua}
       -- ${makePluginsConfigLuaFile rokkaConfig}
       dofile('${
