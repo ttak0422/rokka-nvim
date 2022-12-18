@@ -115,7 +115,6 @@ let
         "loader_event_plugins=${makeKvpConfig cfg.eventPlugins}"
         "loader_cmd_plugins=${makeKvpConfig cfg.cmdPlugins}"
         "loader_ft_plugins=${makeKvpConfig cfg.ftPlugins}"
-        "loader_delay_plugins=${makeListConfig cfg.delayPlugins}"
       ];
       initParams' = concatC initParams;
     in
