@@ -17,7 +17,8 @@ direnv allow
 ## Test.
 
 ```bash
-nixt ./tests/ -v
+# WIP 
+./tests/ut.sh
 ```
 
 <img alt="nix" src="https://builtwithnix.org/badge.svg">

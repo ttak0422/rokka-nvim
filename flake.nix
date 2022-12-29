@@ -4,13 +4,6 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-    nixt = {
-      url = "github:nix-community/nixt";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        flake-utils.follows = "flake-utils";
-      };
-    };
     pre-commit-hooks = {
       url = "github:cachix/pre-commit-hooks.nix";
       inputs = { flake-utils.follows = "flake-utils"; };
@@ -26,7 +19,6 @@
     } // flake-utils.lib.eachDefaultSystem (system:
     let
       pkgs = import nixpkgs { inherit system; };
-      nixt = inputs.nixt.packages.${system}.nixt;
     in
     {
       checks = {
@@ -39,7 +31,6 @@
         };
       };
       devShell = pkgs.mkShell {
-        buildInputs = with pkgs; [ nixt ];
         inherit (self.checks.${system}.pre-commit-check) shellHook;
       };
     });
