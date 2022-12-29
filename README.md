@@ -1,4 +1,4 @@
-# rokka-nvim 
+# rokka-nvim [![test](https://github.com/ttak0422/rokka-nvim/actions/workflows/test.yml/badge.svg)](https://github.com/ttak0422/rokka-nvim/actions/workflows/test.yml)
 
 > "六花 (rokka)" is another name for snow in Japanese.
 
