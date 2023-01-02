@@ -36,14 +36,13 @@ local function load_opt_plugin(self, plugin_name, chain)
 	end
 
 	vim.cmd("packadd " .. plugin_name)
+	self:do_config(plugin_name)
 
 	for _, v in ipairs(plugin.opt_depends_after or {}) do
 		if not chain[v] then
 			self:load_opt_plugin(v, chain)
 		end
 	end
-
-	self:do_config(plugin_name)
 
 	-- update status.
 	plugin.loaded = true
