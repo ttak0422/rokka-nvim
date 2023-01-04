@@ -11,41 +11,31 @@ local function do_config(self, plugin_name)
 	end
 end
 
-local function load_opt_plugin(self, plugin_name, chain)
+local function load_opt_plugin(self, plugin_name)
 	local plugin = self.opt_plugins[plugin_name]
-	chain = chain or {}
-	chain[plugin_name] = true
-
 	if plugin == nil then
 		self.logger.warn("opt plugin not found.", plugin_name)
 		return
 	end
 
-	if plugin.loaded then
-		self.logger.debug("loaded ", plugin_name)
+	if plugin.load then
 		return
 	end
+	plugin.load = true
 
 	self.logger.debug("[Start] load ", plugin_name)
 
 	-- resolve dependencies.
 	for _, v in ipairs(plugin.opt_depends or {}) do
-		if not chain[v] then
-			self:load_opt_plugin(v, chain)
-		end
+		self:load_opt_plugin(v)
 	end
 
 	vim.cmd("packadd " .. plugin_name)
 	self:do_config(plugin_name)
 
 	for _, v in ipairs(plugin.opt_depends_after or {}) do
-		if not chain[v] then
-			self:load_opt_plugin(v, chain)
-		end
+		self:load_opt_plugin(v)
 	end
-
-	-- update status.
-	plugin.loaded = true
 end
 
 local function setup_module_loader(self)
