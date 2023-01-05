@@ -36,6 +36,8 @@ local function load_opt_plugin(self, plugin_name)
 	for _, v in ipairs(plugin.opt_depends_after or {}) do
 		self:load_opt_plugin(v)
 	end
+
+	plugin.loaded = true
 end
 
 local function setup_module_loader(self)
