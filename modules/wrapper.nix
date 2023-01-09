@@ -5,7 +5,8 @@ let
   inherit (pkgs) callPackage writeText;
   inherit (lib) concatStringsSep filter;
   inherit (lib.attrsets) mapAttrsToList;
-  inherit (import ./util.nix lib) toLuaTableWith toLuaTable;
+  inherit (import ./util.nix lib)
+    toLuaTableWith toLuaTable indexed indexOf' indexOf;
   concatC = concatStringsSep ",";
   concatN = concatStringsSep "\n";
 
@@ -44,8 +45,7 @@ let
   # Type: pluginUserConfigType list -> str
   makeStartupConfig = ps:
     let targets = filter (p: p.startup != null) ps;
-    in
-    concatN (map
+    in concatN (map
       (p: ''
         -- ${p.pname}
         ${p.startup}
@@ -55,67 +55,90 @@ let
   # Type: pluginUserConfigType list -> str
   makeStartPluginsConfig = ps:
     let targets = filter (p: p.config != null) ps;
-    in
-    concatN (map
+    in concatN (map
       (p: ''
         -- ${p.pname}
         ${p.config}
       '')
       targets);
 
-  # Type: pluginUserConfigType -> str
-  makeOptPluginConfig = p:
+  # Type: [{ idx: int, val: str }] -> pluginUserConfigType -> str
+  makeOptPluginConfig = indexedOptPluginNames: p:
     let
+      toIndex = pname: indexOf' (x: x.val == pname) indexedOptPluginNames;
+      toIndexStr = pname: "${toString (toIndex pname)}";
       depends =
         if length (p.depends) > 0 then
-          "opt_depends={${concatC (map (p': "'${p'.pname}'") p.depends)}},"
+          "{${concatC (map (p': toIndexStr p'.pname) p.depends)}}"
         else
-          "";
+          "0";
       dependsAfter =
         if length (p.dependsAfter) > 0 then
-          "opt_depends_after={${
-          concatC (map (p': "'${p'.pname}'") p.dependsAfter)
-        }},"
+          "{${concatC (map (p': toIndexStr p'.pname) p.dependsAfter)}}"
         else
-          "";
+          "0";
+
     in
-    "['${p.pname}']={${depends}${dependsAfter}}";
+    if depends == "0" && dependsAfter == "0" then
+      "0"
+    else
+      "{${depends},${dependsAfter}}";
 
-  # Type: pluginUserConfigType list -> str
-  makeOptPluginsConfig = ps: "{${concatC (map makeOptPluginConfig ps)}}";
-
-  # Type: pluginUserConfigType list -> package
-  makeOptPluginsConfigFiles = ps:
-    callPackage ./rokka-plugins-config {
-      # configFiles = map (p: writeText p.pname p.config) ps;
-      pluginsConfigs = ps;
-    };
-
-  # Type: pluginUserConfigType list -> str
-  makeListConfig = ps: toLuaTableWith (p: "'${p.pname}'") ps;
-  makeKvpConfig = ps:
-    "{${
-      concatC (mapAttrsToList
-        (name: value: "['${name}']=${toLuaTable (map (x: "'${x}'") value)}") ps)
-    }}";
+  # Type: [{ idx: int, val: str }] -> [pluginUserConfigType] -> str
+  makeOptPluginsConfig' = indexedOptPluginNames: ps:
+    let
+      optPluginConfigs =
+        let
+          configs = map
+            (p: {
+              name = p.pname;
+              value = makeOptPluginConfig indexedOptPluginNames p;
+            })
+            ps;
+        in
+        filter (x: x.value != "0") configs;
+    in
+    "{${concatC (map (x: "['${x.name}']=${x.value}") optPluginConfigs)}}";
 
   # Type: obj -> package
-  makeExtraConfigLuaFile = cfgText: writeText "rokka-extraconfig.lua" cfgText;
+  makeConfigFiles = { optPlugins, delayPlugins, ... }:
+    callPackage ./rokka-config {
+      pluginsConfigs = optPlugins;
+      delayPlugins = delayPlugins;
+    };
+
+  # Type: [{ idx: int, val: str }] -> { name: string, value: [str] } -> str
+  makeKvpConfig' = indexedOptPluginNames: ps:
+    let
+      toIndex = pname: indexOf' (x: x.val == pname) indexedOptPluginNames;
+      toIndexStr = pname: "${toString (toIndex pname)}";
+    in
+    "{${
+      concatC (mapAttrsToList
+        (name: value: "['${name}']=${toLuaTable (map (x: toIndexStr x) value)}")
+        ps)
+    }}";
 
   # Type: obj -> str
   makePluginsConfigLua = cfg:
     let
+      # Type: [str]
+      optPluginNames = map (x: x.pname) cfg.optPlugins;
+      # Type: [{ idx: int, val: str }]
+      indexedOptPluginNames = indexed optPluginNames;
+      # Type: str
+      optPluginNamesTable = toLuaTableWith (p: "'${p}'") optPluginNames;
       initParams = [
-        "log_plugin='${cfg.log_plugin}'"
         "log_level='${cfg.log_level}'"
+        "config_root='${makeConfigFiles cfg}'"
+        "opt_plugin_names=${optPluginNamesTable}"
+        "opt_plugins=${makeOptPluginsConfig' indexedOptPluginNames cfg.optPlugins}"
+        "mod_ps=${makeKvpConfig' indexedOptPluginNames cfg.modulePlugins}"
+        "ev_ps=${makeKvpConfig' indexedOptPluginNames cfg.eventPlugins}"
+        "cmd_ps=${makeKvpConfig' indexedOptPluginNames cfg.cmdPlugins}"
+        "ft_ps=${makeKvpConfig' indexedOptPluginNames cfg.ftPlugins}"
         "loader_delay_time=${toString cfg.loader_delay_time}"
-        "opt_plugins=${makeOptPluginsConfig cfg.optPlugins}"
-        "plugins_config_root='${makeOptPluginsConfigFiles cfg.optPlugins}/'"
-        "loader_module_plugins=${makeKvpConfig cfg.modulePlugins}"
-        "loader_event_plugins=${makeKvpConfig cfg.eventPlugins}"
-        "loader_cmd_plugins=${makeKvpConfig cfg.cmdPlugins}"
-        "loader_ft_plugins=${makeKvpConfig cfg.ftPlugins}"
-        "loader_delay_plugins=${makeListConfig cfg.delayPlugins}"
+        "log_plugin='${cfg.log_plugin}'"
       ];
       initParams' = concatC initParams;
     in
@@ -138,7 +161,7 @@ let
     writeText "rokka-init.lua" (makePluginsConfigLua cfg);
 
 in
-rec {
+{
   inherit makePluginsConfigLua makePluginsConfigLuaFile;
 
   # Type: pluginUserConfigType list (rokka.nvim) -> pluginWithConfigType list (home-manager)
