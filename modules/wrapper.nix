@@ -6,27 +6,31 @@ let
   inherit (lib) concatStringsSep filter;
   inherit (lib.attrsets) mapAttrsToList;
   inherit (import ./util.nix lib)
-    toLuaTableWith toLuaTable indexed indexOf' indexOf;
+    toLuaTableWith toLuaTable indexed indexOf';
   concatC = concatStringsSep ",";
   concatN = concatStringsSep "\n";
 
-  # Type:
-  #   pluginUserConfigType (rokka.nvim) -> pluginWithConfigType (home-manager)
-  # Doc:
-  #   mapping plugin's config.
-  # Note:
-  #   some options are missing and have to configure elsewhere.
+  /**
+   * Type:
+   *   pluginUserConfigType (rokka.nvim) -> pluginWithConfigType (home-manager)
+   * Doc:
+   *   mapping plugin's config.
+   * Note:
+   *   some options are missing and have to configure elsewhere.
+   */
   mappingPlugin = p: {
     plugin = p.plugin;
     optional = p.optional;
   };
 
-  # Type:
-  #   opt -> pluginUserConfigType (rokka.nvim) -> pluginWithConfigType (home-manager)
-  # Doc:
-  #   mapping plugin's config with optimize.
-  # Note:
-  #   some options are missing and have to configure elsewhere.
+  /**
+   * Type:
+   *   opt -> pluginUserConfigType (rokka.nvim) -> pluginWithConfigType (home-manager)
+   * Doc:
+   *   mapping plugin's config with optimize.
+   * Note:
+   *   some options are missing and have to configure elsewhere.
+   */
   mappingPluginWithOptimize = opt: p: {
     plugin =
       if p.optimize then

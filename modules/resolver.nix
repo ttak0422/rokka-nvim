@@ -20,10 +20,12 @@ rec {
         pname = p.pname;
       };
 
-  # Type:
-  #   (package | pluginUserConfigType) list -> pluginUserConfigType list
-  # Note:
-  #   works recursive
+  /*
+   * Type:
+   *   (package | pluginUserConfigType) list -> pluginUserConfigType list
+   * Note:
+   *   works recursive
+   */
   normalizePlugins = ps:
     let
       # pluginUserConfigType -> pluginUserConfigType
