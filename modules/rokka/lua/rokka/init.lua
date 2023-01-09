@@ -14,14 +14,12 @@ rokka.init = function(config)
 	local loader_config = {
 		group_name = group_name,
 		logger = logger,
-		opt_plugin_names = config.opt_plugin_names,
-		opt_plugins = config.opt_plugins,
 		config_root = config.config_root,
-		module_plugins = config.mod_ps,
-		event_plugins = config.ev_ps,
-		cmd_plugins = config.cmd_ps,
-		ft_plugins = config.ft_ps,
-		delay_time = config.loader_delay_time,
+		delay_time = config.delay_time,
+		mods = config.mods,
+		evs = config.evs,
+		cmds = config.cmds,
+		fts = config.fts,
 	}
 	local loader = require("rokka.loader").new(loader_config)
 	loader:setup_module_loader()

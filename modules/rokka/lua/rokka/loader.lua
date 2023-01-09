@@ -10,47 +10,47 @@ local function do_plugin_config(self, plugin_name)
 end
 
 local function load_opt_plugin(self, plugin_name)
-	local plugin = self.opt_plugins[plugin_name]
-	if plugin == nil then
-		plugin = {}
+	local loaded = self.plugin_loaded[plugin_name]
+	if loaded then
+		return nil
 	end
-
-	if plugin.load then
-		return
-	end
-	plugin.load = true
+	self.plugin_loaded[plugin_name] = true
 
 	self.logger.debug("[Start] load ", plugin_name)
 
 	-- resolve dependencies.
-	local depends = (plugin[1] and plugin[1] ~= 0) and plugin[1] or {}
-	for _, idx in ipairs(depends) do
-		self:load_opt_plugin(self.opt_plugin_names[idx])
+	local depends = dofile(self.config_root .. "/plugin/depends/" .. plugin_name)
+	for _, p in ipairs(depends) do
+		self:load_opt_plugin(p)
 	end
 
 	vim.cmd("packadd " .. plugin_name)
 	self:do_plugin_config(plugin_name)
 
-	local depends_after = (plugin[2] and plugin[2] ~= 0) and plugin[2] or {}
-	for _, idx in ipairs(depends_after) do
-		self:load_opt_plugin(self.opt_plugin_names[idx])
+	local depends_after = dofile(self.config_root .. "/plugin/dependsAfter/" .. plugin_name)
+	for _, p in ipairs(depends_after) do
+		self:load_opt_plugin(p)
 	end
-
-	plugin.loaded = true
 end
 
 local function setup_module_loader(self)
 	self.logger.debug("[Setup] module loader.")
 
 	local function custom_loader(module_name)
-		local plugin_indexes = self.module_plugins[module_name]
-		if not plugin_indexes or plugin_indexes.flag then
+		local loaded = self.mods_loaded[module_name]
+		if loaded then
 			return nil
 		end
-		plugin_indexes.flag = true
+		loaded = true
+
+		local ok, ps = pcall(dofile, self.config_root .. "/mod/" .. module_name)
+		if not ok then
+			return nil
+		end
+
 		self.logger.debug("[Start] load plugin (module).", module_name)
-		for _, plugin_index in ipairs(plugin_indexes) do
-			self:load_opt_plugin(self.opt_plugin_names[plugin_index])
+		for _, p in ipairs(ps) do
+			self:load_opt_plugin(p)
 		end
 		self.logger.debug("[End] load plugin (module).", module_name)
 	end
@@ -74,18 +74,18 @@ end
 
 local function setup_event_loader(self)
 	self.logger.debug("[Setup] event loader.")
-	for e, plugin_indexes in pairs(self.event_plugins) do
-		self.logger.debug("[Setup] event.", e)
-		vim.api.nvim_create_autocmd({ e }, {
+	for _, ev in ipairs(self.evs) do
+		self.logger.debug("[Setup] event.", ev)
+		vim.api.nvim_create_autocmd({ ev }, {
 			group = self.group_name,
 			pattern = "*",
 			once = true,
 			callback = function()
-				self.logger.debug("[Start] load plugin (event).", e)
-				for _, plugin_index in ipairs(plugin_indexes) do
-					self:load_opt_plugin(self.opt_plugin_names[plugin_index])
+				self.logger.debug("[Start] load plugin (event).", ev)
+				for _, plugin in ipairs(dofile(self.config_root .. "/ev/" .. ev)) do
+					self:load_opt_plugin(plugin)
 				end
-				self.logger.debug("[End] load plugin (event).", e)
+				self.logger.debug("[End] load plugin (event).", ev)
 			end,
 		})
 	end
@@ -93,7 +93,7 @@ end
 
 local function setup_cmd_loader(self)
 	self.logger.debug("[Setup] cmd loader.")
-	for cmd, plugin_indexes in pairs(self.cmd_plugins) do
+	for _, cmd in ipairs(self.cmds) do
 		self.logger.debug("[Setup] cmd.", cmd)
 		vim.api.nvim_create_autocmd({ "CmdUndefined" }, {
 			group = self.group_name,
@@ -101,8 +101,8 @@ local function setup_cmd_loader(self)
 			once = true,
 			callback = function()
 				self.logger.debug("[Start] load plugin (cmd).", cmd)
-				for _, plugin_index in ipairs(plugin_indexes) do
-					self:load_opt_plugin(self.opt_plugin_names[plugin_index])
+				for _, plugin in ipairs(dofile(self.config_root .. "/cmd/" .. cmd)) do
+					self:load_opt_plugin(plugin)
 				end
 				self.logger.debug("[End] load plugin (cmd).", cmd)
 			end,
@@ -112,7 +112,7 @@ end
 
 local function setup_ft_loader(self)
 	self.logger.debug("[Setup] ft loader.")
-	for ft, plugin_indexes in pairs(self.ft_plugins) do
+	for _, ft in ipairs(self.fts) do
 		self.logger.debug("[Setup] ft.", ft)
 		vim.api.nvim_create_autocmd({ "FileType" }, {
 			group = self.group_name,
@@ -120,8 +120,8 @@ local function setup_ft_loader(self)
 			once = true,
 			callback = function()
 				self.logger.debug("[Start] load plugin (ft).", ft)
-				for _, plugin_index in ipairs(plugin_indexes) do
-					self:load_opt_plugin(self.opt_plugin_names[plugin_index])
+				for _, plugin in ipairs(dofile(self.config_root .. "/ft/" .. ft)) do
+					self:load_opt_plugin(plugin)
 				end
 				self.logger.debug("[End] load plugin (ft).", ft)
 			end,
@@ -133,16 +133,16 @@ function loader.new(cfg)
 	vim.api.nvim_create_augroup(cfg.group_name, { clear = true })
 
 	local tbl = {
+		plugin_loaded = {},
+		mods_loaded = {},
+		group_name = cfg.group_name,
 		logger = cfg.logger,
-		opt_plugin_names = cfg.opt_plugin_names,
-		opt_plugins = cfg.opt_plugins,
 		config_root = cfg.config_root,
-		module_plugins = cfg.module_plugins,
-		event_plugins = cfg.event_plugins,
-		cmd_plugins = cfg.cmd_plugins,
-		ft_plugins = cfg.ft_plugins,
-		delay_plugins = cfg.delay_plugins,
 		delay_time = cfg.delay_time,
+		mods = cfg.mods,
+		evs = cfg.evs,
+		cmds = cfg.cmds,
+		fts = cfg.fts,
 	}
 	tbl.load_opt_plugin = load_opt_plugin
 	tbl.do_plugin_config = do_plugin_config
