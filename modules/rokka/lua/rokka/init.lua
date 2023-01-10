@@ -26,15 +26,8 @@ rokka.init = function(config)
 	loader:setup_event_loader()
 	loader:setup_cmd_loader()
 	loader:setup_ft_loader()
+	loader:setup_delay_loader()
 
-	vim.api.nvim_create_autocmd({ "VimEnter" }, {
-		group = group_name,
-		pattern = "*",
-		once = true,
-		callback = function()
-			loader:setup_delay_loader()
-		end,
-	})
 	logger.info("rokka initialized...")
 end
 
