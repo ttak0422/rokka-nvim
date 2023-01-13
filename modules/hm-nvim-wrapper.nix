@@ -2,10 +2,8 @@
 { self, ... }@inputs:
 { options, config, pkgs, lib, ... }:
 let
-  inherit (builtins) map toString length;
   inherit (pkgs) callPackage writeText;
-  inherit (lib)
-    types mkIf mkOption mkEnableOption mkAfter mkBefore literalExample;
+  inherit (lib) types mkIf mkOption mkEnableOption mkBefore literalExample;
   inherit (import ./types.nix { inherit lib; }) pluginUserConfigType;
   inherit (import ./resolver.nix { inherit pkgs lib; })
     normalizePlugin resolvePlugins;

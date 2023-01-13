@@ -3,10 +3,9 @@
 
 let
   inherit (builtins) map;
-  inherit (pkgs) writeText;
   inherit (lib) flatten filter;
   inherit (lib.lists) groupBy' unique foldl';
-  inherit (lib.attrsets) attrValues mapAttrsToList;
+  inherit (lib.attrsets) attrValues;
   inherit (import ./util.nix lib) mergeElement expandWith;
   inherit (import ./types.nix { inherit lib; }) pluginUserConfigDefault;
 in
@@ -21,10 +20,12 @@ rec {
         pname = p.pname;
       };
 
-  # Type:
-  #   (package | pluginUserConfigType) list -> pluginUserConfigType list
-  # Note:
-  #   works recursive
+  /*
+   * Type:
+   *   (package | pluginUserConfigType) list -> pluginUserConfigType list
+   * Note:
+   *   works recursive
+   */
   normalizePlugins = ps:
     let
       # pluginUserConfigType -> pluginUserConfigType

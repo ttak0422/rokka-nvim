@@ -1,11 +1,11 @@
 lib:
 
 let
-  inherit (builtins) map elem toString;
-  inherit (lib) concatStringsSep filter;
-  inherit (lib.attrsets) mapAttrs mapAttrsToList;
-  inherit (lib.lists) foldl';
+  inherit (builtins) map elem filter head;
+  inherit (lib) concatStringsSep;
+  inherit (lib.lists) foldl' imap1;
 
+  # Type: [str] -> str
   concatC = concatStringsSep ",";
 in
 rec {
@@ -32,10 +32,23 @@ rec {
     else
       e2;
 
-  # Type: (a -> b) -> [a] -> str
+  # Type: (a -> str) -> [a] -> str
   toLuaTableWith = f: xs: "{${concatC (map f xs)}}";
 
-  # Type: [a] -> str
+  # Type: [str] -> str
   toLuaTable = toLuaTableWith (x: x);
 
+  # Type: [a] -> [{ idx: int, val: a }]
+  indexed = xs:
+    imap1
+      (i: x: {
+        idx = i;
+        val = x;
+      })
+      xs;
+
+  # Type: ({ idx: int, val: a } -> bool) -> [{ idx: int, val: a }] -> int
+  indexOf' = pred: xs:
+    let xs' = filter pred xs;
+    in if xs' == [ ] then throw "not found!" else let h = head xs'; in h.idx;
 }
