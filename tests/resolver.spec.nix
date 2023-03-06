@@ -2,10 +2,9 @@
 with pkgs.lib;
 
 let
-  inherit (builtins) map length head;
+  inherit (builtins) map;
   inherit (pkgs) callPackage;
-  inherit (pkgs.lib.lists) last;
-  inherit (pkgs.lib.attrsets) attrValues filterAttrs;
+  inherit (pkgs.lib.attrsets) filterAttrs;
   inherit (import ./../src/types.nix { inherit lib; })
     pluginUserConfigDefault;
   dummy-package = "package";
