@@ -3,5 +3,6 @@
     "diagnostics.globals": [
         "vim"
     ],
-    "runtime.version": "Lua 5.1"
+    "runtime.version": "Lua 5.1",
+    "workspace.checkThirdParty": false
 }

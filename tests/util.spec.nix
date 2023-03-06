@@ -1,7 +1,7 @@
 { pkgs ? import <nixpkgs> { } }:
 
 let
-  util = import ./../modules/util.nix pkgs.lib;
+  util = import ./../src/util.nix pkgs.lib;
   xs = [
     {
       name = "foo";
