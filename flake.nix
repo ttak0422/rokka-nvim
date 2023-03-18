@@ -14,7 +14,7 @@
   outputs =
     { self, nixpkgs, flake-utils, pre-commit-hooks, nix-filter, ... }@inputs:
     {
-      hmModule = import ./modules/hm-nvim-wrapper.nix
+      hmModule = import ./src/hm-nvim-wrapper.nix
         (inputs // { nix-filter = nix-filter.lib; });
     } // flake-utils.lib.eachDefaultSystem (system:
     let

@@ -2,17 +2,16 @@
 with pkgs.lib;
 
 let
-  inherit (builtins) map length head;
+  inherit (builtins) map;
   inherit (pkgs) callPackage;
-  inherit (pkgs.lib.lists) last;
-  inherit (pkgs.lib.attrsets) attrValues filterAttrs;
-  inherit (import ./../modules/types.nix { inherit lib; })
+  inherit (pkgs.lib.attrsets) filterAttrs;
+  inherit (import ./../src/types.nix { inherit lib; })
     pluginUserConfigDefault;
   dummy-package = "package";
   dummy-plugin = { pname = "dumm-plugin"; };
   dummy2-plugin = { pname = "dummy2-plugin"; };
   dummy3-plugin = { pname = "dummy3-plugin"; };
-  resolver = callPackage ./../modules/resolver.nix { };
+  resolver = callPackage ./../src/resolver.nix { };
 
   normalized = {
     rokka = null;

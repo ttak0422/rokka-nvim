@@ -1,12 +1,9 @@
 { pkgs ? import <nixpkgs> { } }:
-with pkgs.lib;
 
 let
-  inherit (builtins) map;
   inherit (pkgs) callPackage;
-  inherit (pkgs.stdenv) mkDerivation;
   dummy-plugin = { pname = "dummy"; };
-  wrapper = callPackage ./../modules/wrapper.nix {
+  wrapper = callPackage ./../src/wrapper.nix {
     # dummy
     nix-filter = { root, ... }: root;
   };
